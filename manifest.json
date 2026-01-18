@@ -5,6 +5,9 @@
   "description": "scroll through articles while they're read to you",
   "permissions": ["activeTab", "scripting", "webRequest"],
   "host_permissions": ["http://localhost/*", "http://127.0.0.1/*"],
+  "background": {
+    "service_worker": "background.js"
+  },
   "action": {
     "default_popup": "popup2.html",
     "default_title": "article narrator"
@@ -13,6 +16,7 @@
     {
       "matches": ["https://twitter.com/*", "https://x.com/*"],
       "js": ["content.js"],
+      "css": ["narrator.css"],
       "run_at": "document_end"
     }
   ]
