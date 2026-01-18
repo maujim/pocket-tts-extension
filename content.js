@@ -327,6 +327,23 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     return true;
   }
 
+  // Jump to (scroll to) a specific span
+  if (msg.type === "jumpToSpan") {
+    const selector = 'span[data-text="true"]';
+    const nodes = document.querySelectorAll(selector);
+    const index = msg.index;
+
+    if (index < 0 || index >= nodes.length) {
+      sendResponse({ ok: false, error: `Invalid index: ${index}` });
+      return true;
+    }
+
+    const span = nodes[index];
+    span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    sendResponse({ ok: true, index: index });
+    return true;
+  }
+
   if (msg.type !== "count") return;
 
   const selector = 'span[data-text="true"]';

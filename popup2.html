@@ -165,26 +165,56 @@
         margin: 12px 0;
       }
 
-      /* Span input row */
-      .input-row {
+      /* Pagination */
+      .pagination {
         display: flex;
-        gap: 8px;
         align-items: center;
-      }
-
-      .input-row input {
-        width: 70px;
-        padding: 8px 10px;
-        font-family: inherit;
-        font-size: 12px;
-        border: 1px solid #ddd;
+        justify-content: space-between;
+        padding: 8px 0;
+        border: 1px solid #e0e0e0;
         border-radius: 6px;
-        text-align: center;
+        background: #fff;
+        margin-bottom: 10px;
       }
 
-      .input-row input:focus {
-        outline: none;
-        border-color: #2563eb;
+      .pagination button {
+        flex: 0;
+        padding: 8px 12px;
+        background: transparent;
+        border: none;
+        color: #2563eb;
+        font-weight: 500;
+        border-radius: 0;
+      }
+
+      .pagination button:hover:not(:disabled) {
+        background: #f0f7ff;
+      }
+
+      .pagination button:disabled {
+        color: #ccc;
+        background: transparent;
+      }
+
+      .pagination button:first-child {
+        border-right: 1px solid #e0e0e0;
+        border-radius: 6px 0 0 6px;
+      }
+
+      .pagination button:last-child {
+        border-left: 1px solid #e0e0e0;
+        border-radius: 0 6px 6px 0;
+      }
+
+      .pagination-info {
+        font-size: 12px;
+        color: #666;
+        text-align: center;
+        flex: 1;
+      }
+
+      .pagination-info strong {
+        color: #333;
       }
     </style>
   </head>
@@ -198,13 +228,27 @@
     <div id="out">Ready</div>
 
     <div id="spanInfo" class="info-panel span-info">
-      <div class="info-label">Selected Span</div>
+      <div class="info-label">Span <span id="spanIndex">0</span></div>
       <div class="info-value preview" id="spanText"></div>
       <div class="info-row">
         <span><strong id="spanLength">0</strong> characters</span>
         <span><strong id="spanWords">0</strong> words</span>
       </div>
     </div>
+
+    <div class="pagination" id="pagination" style="display: none;">
+      <button id="prevSpan" disabled>&lt; Prev</button>
+      <div class="pagination-info">
+        Span <strong id="currentSpan">0</strong> of <strong id="totalSpans">0</strong>
+      </div>
+      <button id="nextSpan" disabled>Next &gt;</button>
+    </div>
+
+    <div class="btn-group" id="jumpGroup" style="display: none;">
+      <button id="jumpToSpan" class="secondary">Jump to Span</button>
+    </div>
+
+    <div class="divider"></div>
 
     <div id="audioInfo" class="info-panel audio-info">
       <div class="info-label">Generated Audio</div>
@@ -230,8 +274,6 @@
       </div>
     </div>
 
-    <div class="divider"></div>
-
     <div class="btn-group">
       <div class="btn-row">
         <button id="copy" class="secondary" disabled>Copy Text</button>
@@ -239,10 +281,7 @@
       </div>
       <div class="btn-row">
         <button id="playFirst" class="primary" disabled>Play First Span</button>
-      </div>
-      <div class="input-row">
-        <input type="number" id="spanIndex" min="0" value="0" disabled>
-        <button id="playSpanN" class="primary" disabled>Play Span N</button>
+        <button id="playCurrent" class="primary" disabled>Play Current Span</button>
       </div>
       <div class="btn-row">
         <button id="estimate" class="secondary" disabled>Estimate Full Audio</button>
