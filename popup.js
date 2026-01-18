@@ -178,7 +178,7 @@ document.getElementById("run").onclick = async () => {
     { type: "count"  },
     (res) => {
       if (!res) {
-        out.textContent = "no response (content script missing?)";
+        out.textContent = "no response, try reloading the page.";
         copyBtn.disabled = true;
         openTabBtn.disabled = true;
         playFirstBtn.disabled = true;
