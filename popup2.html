@@ -17,24 +17,23 @@
         background: #fafafa;
       }
 
-      /* Status bar */
       #out {
-        padding: 10px 12px;
+        padding: 8px 10px;
         background: #fff;
-        border: 1px solid #e0e0e0;
+        border: 1px solid #e5e7eb;
         border-radius: 6px;
-        font-size: 12px;
-        color: #555;
-        min-height: 20px;
-        margin-bottom: 12px;
+        font-size: 11px;
+        color: #6b7280;
+        min-height: 18px;
+        display: flex;
+        align-items: center;
       }
 
-      /* Info panels */
       .info-panel {
-        padding: 10px 12px;
+        padding: 8px 10px;
         border-radius: 6px;
-        font-size: 12px;
-        margin-bottom: 10px;
+        font-size: 11px;
+        margin-bottom: 8px;
         display: none;
       }
 
@@ -43,126 +42,114 @@
       }
 
       .info-panel.span-info {
-        background: #f0f7ff;
-        border: 1px solid #cce0ff;
+        background: #eff6ff;
+        border: 1px solid #dbeafe;
       }
 
       .info-panel.audio-info {
-        background: #fff8f0;
-        border: 1px solid #ffe0c0;
+        background: #fffbeb;
+        border: 1px solid #fde68a;
       }
 
       .info-panel.estimate-info {
-        background: #f0fff4;
-        border: 1px solid #c0f0d0;
+        background: #f0fdf4;
+        border: 1px solid #dcfce7;
       }
 
       .info-label {
         font-weight: 600;
-        color: #666;
-        font-size: 10px;
+        color: #4b5563;
+        font-size: 9px;
         text-transform: uppercase;
-        letter-spacing: 0.3px;
-        margin-bottom: 4px;
-      }
-
-      .info-value {
-        color: #333;
-        line-height: 1.4;
+        letter-spacing: 0.5px;
+        margin-bottom: 3px;
       }
 
       .info-value.preview {
         font-style: italic;
-        color: #666;
-        margin: 6px 0;
+        color: #6b7280;
+        margin: 4px 0;
+        line-height: 1.4;
       }
 
       .info-row {
         display: flex;
         justify-content: space-between;
-        margin-top: 6px;
-        padding-top: 6px;
+        margin-top: 4px;
+        padding-top: 4px;
         border-top: 1px solid rgba(0,0,0,0.06);
       }
 
       .info-row span {
-        color: #888;
-        font-size: 11px;
+        color: #9ca3af;
+        font-size: 10px;
       }
 
       .info-row strong {
-        color: #333;
+        color: #374151;
         font-weight: 600;
       }
 
-      /* Buttons */
       .btn-group {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 6px;
       }
 
       .btn-row {
         display: flex;
-        gap: 8px;
+        gap: 6px;
       }
 
       button {
         flex: 1;
-        padding: 10px 14px;
+        padding: 8px 12px;
         font-family: inherit;
-        font-size: 12px;
+        font-size: 11px;
         font-weight: 500;
-        border: none;
-        border-radius: 6px;
+        border: 1px solid #e5e7eb;
+        border-radius: 5px;
         cursor: pointer;
-        transition: all 0.15s ease;
-      }
-
-      button:active {
-        transform: scale(0.98);
-      }
-
-      button.primary {
-        background: #2563eb;
-        color: white;
-      }
-
-      button.primary:hover {
-        background: #1d4ed8;
-      }
-
-      button.secondary {
+        transition: all 0.1s ease;
         background: #fff;
-        color: #333;
-        border: 1px solid #ddd;
+        color: #374151;
       }
 
-      button.secondary:hover {
-        background: #f5f5f5;
-        border-color: #ccc;
+      button:hover:not(:disabled) {
+        background: #f9fafb;
+        border-color: #d1d5db;
+      }
+
+      button:active:not(:disabled) {
+        background: #f3f4f6;
+        transform: translateY(1px);
       }
 
       button:disabled {
         opacity: 0.5;
         cursor: not-allowed;
-        transform: none;
       }
 
-      button.primary:disabled {
-        background: #93c5fd;
+      button.primary {
+        background: #2563eb;
+        color: white;
+        border-color: #2563eb;
       }
 
-      button.secondary:disabled {
-        background: #f5f5f5;
-        color: #999;
+      button.primary:hover:not(:disabled) {
+        background: #1d4ed8;
+        border-color: #1d4ed8;
       }
 
-      /* Divider */
-      .divider {
-        height: 1px;
-        background: #e5e5e5;
-        margin: 12px 0;
+      button.danger {
+        background: #ef4444;
+        color: white;
+        border-color: #ef4444;
+      }
+
+      button.danger:hover:not(:disabled) {
+        background: #dc2626;
+        border-color: #dc2626;
       }
 
       /* Pagination */
@@ -170,51 +157,56 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 8px 0;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
+        padding: 6px 0;
+        border: 1px solid #e5e7eb;
+        border-radius: 5px;
         background: #fff;
-        margin-bottom: 10px;
+        margin-bottom: 8px;
       }
 
       .pagination button {
         flex: 0;
-        padding: 8px 12px;
+        padding: 6px 10px;
         background: transparent;
         border: none;
         color: #2563eb;
         font-weight: 500;
-        border-radius: 0;
+        font-size: 11px;
       }
 
       .pagination button:hover:not(:disabled) {
-        background: #f0f7ff;
+        background: #eff6ff;
       }
 
       .pagination button:disabled {
-        color: #ccc;
-        background: transparent;
+        color: #d1d5db;
       }
 
       .pagination button:first-child {
-        border-right: 1px solid #e0e0e0;
-        border-radius: 6px 0 0 6px;
+        border-right: 1px solid #e5e7eb;
+        border-radius: 5px 0 0 5px;
       }
 
       .pagination button:last-child {
-        border-left: 1px solid #e0e0e0;
-        border-radius: 0 6px 6px 0;
+        border-left: 1px solid #e5e7eb;
+        border-radius: 0 5px 5px 0;
       }
 
       .pagination-info {
-        font-size: 12px;
-        color: #666;
+        font-size: 11px;
+        color: #6b7280;
         text-align: center;
         flex: 1;
       }
 
       .pagination-info strong {
-        color: #333;
+        color: #111827;
+      }
+
+      .divider {
+        height: 1px;
+        background: #e5e7eb;
+        margin: 10px 0;
       }
     </style>
   </head>
@@ -231,7 +223,7 @@
       <div class="info-label">Span <span id="spanIndex">0</span></div>
       <div class="info-value preview" id="spanText"></div>
       <div class="info-row">
-        <span><strong id="spanLength">0</strong> characters</span>
+        <span><strong id="spanLength">0</strong> chars</span>
         <span><strong id="spanWords">0</strong> words</span>
       </div>
     </div>
@@ -239,52 +231,54 @@
     <div class="pagination" id="pagination" style="display: none;">
       <button id="prevSpan" disabled>&lt; Prev</button>
       <div class="pagination-info">
-        Span <strong id="currentSpan">0</strong> of <strong id="totalSpans">0</strong>
+        <strong id="currentSpan">0</strong> / <strong id="totalSpans">0</strong>
       </div>
       <button id="nextSpan" disabled>Next &gt;</button>
     </div>
 
     <div class="btn-group" id="jumpGroup" style="display: none;">
-      <button id="jumpToSpan" class="secondary">Jump to Span</button>
+      <button id="jumpToSpan">Jump to Span</button>
     </div>
 
     <div class="divider"></div>
 
     <div id="audioInfo" class="info-panel audio-info">
-      <div class="info-label">Generated Audio</div>
+      <div class="info-label">Audio</div>
       <div class="info-row" style="margin-top: 0; padding-top: 0; border: none;">
-        <span>WAV size</span>
+        <span>Size</span>
         <span><strong id="wavSize">—</strong></span>
       </div>
     </div>
 
     <div id="estimateInfo" class="info-panel estimate-info">
-      <div class="info-label">Full Document Estimate</div>
+      <div class="info-label">Document Estimate</div>
       <div class="info-row" style="margin-top: 0; padding-top: 0; border: none;">
         <span>Ratio</span>
-        <span><strong id="ratioDisplay">—</strong> bytes/char</span>
+        <span><strong id="ratioDisplay">—</strong> b/char</span>
       </div>
       <div class="info-row">
-        <span>Total text</span>
+        <span>Total</span>
         <span><strong id="totalChars">—</strong> chars</span>
       </div>
       <div class="info-row">
-        <span>Est. audio size</span>
+        <span>Est. size</span>
         <span><strong id="estimatedSize">—</strong></span>
       </div>
     </div>
 
+    <div class="divider"></div>
+
     <div class="btn-group">
       <div class="btn-row">
-        <button id="copy" class="secondary" disabled>Copy Text</button>
-        <button id="openTab" class="secondary" disabled>Open in Tab</button>
+        <button id="copy" disabled>Copy Text</button>
+        <button id="openTab" disabled>Open in Tab</button>
       </div>
       <div class="btn-row">
-        <button id="playFirst" class="primary" disabled>Play First Span</button>
-        <button id="playCurrent" class="primary" disabled>Play Current Span</button>
+        <button id="playFirst" class="primary" disabled>Play First</button>
+        <button id="playCurrent" class="primary" disabled>Play Current</button>
       </div>
       <div class="btn-row">
-        <button id="estimate" class="secondary" disabled>Estimate Full Audio</button>
+        <button id="estimate" disabled>Estimate Audio</button>
       </div>
     </div>
 
