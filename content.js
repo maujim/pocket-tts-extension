@@ -1,296 +1,68 @@
-// const API_URL = 'http://localhost:8000/tts';
-// const WORD_THRESHOLD = 100;
-
-// let state = {
-//   running: false,
-//   paused: false,
-//   allSpans: [],
-//   nextSpanIndex: 0,
-//   currentBuffer: [],
-//   currentBufferWords: 0,
-//   queue: [], // {id, spans, audioUrl, ready, playing}
-//   queueIdCounter: 0,
-//   playedCount: 0,
-//   currentAudio: null
-// };
-
-
-// function init() {
-//   console.log('[narrator] initializing...');
-//   console.log('[narrator] document ready:', document.readyState);
-//   console.log('[narrator] document body:', document.body ? 'exists' : 'MISSING');
-  
-//   // try different selectors to debug
-//   const selector1 = 'span[data-text="true"]';
-//   const selector2 = 'span[data-text]';
-//   const selector3 = 'span';
-  
-//   const result1 = document.querySelectorAll(selector1);
-//   const result2 = document.querySelectorAll(selector2);
-//   const result3 = document.querySelectorAll(selector3);
-  
-//   console.log(`[narrator] "${selector1}": ${result1.length}`);
-//   console.log(`[narrator] "${selector2}": ${result2.length}`);
-//   console.log(`[narrator] "${selector3}": ${result3.length}`);
-  
-//   if (result1.length > 0) {
-//     console.log('[narrator] first span:', result1[0], result1[0].textContent.substring(0, 100));
-//   }
-  
-//   if (result2.length > 0 && result1.length === 0) {
-//     console.log('[narrator] spans with data-text but not "true":', result2[0].getAttribute('data-text'));
-//   }
-  
-//   state.allSpans = Array.from(result1);
-//   console.log('[narrator] final span count:', state.allSpans.length);
-//   updatePopup();
-// }
-
-// function countWords(text) {
-//   return text.split(/\s+/).filter(w => w.length > 0).length;
-// }
-
-// function addToBuffer(span) {
-//   const words = countWords(span.textContent);
-//   state.currentBuffer.push(span);
-//   state.currentBufferWords += words;
-  
-//   if (state.currentBufferWords >= WORD_THRESHOLD) {
-//     submitBuffer();
-//   }
-// }
-
-// async function submitBuffer() {
-//   if (state.currentBuffer.length === 0) return;
-  
-//   const requestId = state.queueIdCounter++;
-//   const formData = new FormData();
-  
-//   state.currentBuffer.forEach((span, i) => {
-//     formData.append(`text_${i}`, span.textContent);
-//   });
-  
-//   state.queue.push({
-//     id: requestId,
-//     spans: [...state.currentBuffer],
-//     audioUrl: null,
-//     ready: false,
-//     playing: false
-//   });
-  
-//   state.currentBuffer = [];
-//   state.currentBufferWords = 0;
-  
-//   updatePopup();
-  
-//   // send to api
-//   try {
-//     const response = await fetch(API_URL, {
-//       method: 'POST',
-//       body: formData
-//     });
-    
-//     if (!response.ok) {
-//       throw new Error(`api error: ${response.status}`);
-//     }
-    
-//     const blob = await response.blob();
-//     const audioUrl = URL.createObjectURL(blob);
-    
-//     const queueItem = state.queue.find(q => q.id === requestId);
-//     if (queueItem) {
-//       queueItem.audioUrl = audioUrl;
-//       queueItem.ready = true;
-//       updatePopup();
-//       checkAndPlay();
-//     }
-//   } catch (err) {
-//     sendError(`request ${requestId} failed: ${err.message}`);
-//     updatePopup();
-//   }
-// }
-
-// function checkAndPlay() {
-//   if (!state.running || state.paused) return;
-//   if (state.queue.length === 0) return;
-//   if (state.currentAudio) return; // already playing
-  
-//   const nextItem = state.queue[0];
-//   if (!nextItem.ready) return;
-  
-//   playItem(nextItem);
-// }
-
-// function playItem(item) {
-//   state.currentAudio = new Audio(item.audioUrl);
-//   item.playing = true;
-//   updatePopup();
-  
-//   // scroll to first span in this batch
-//   if (item.spans.length > 0) {
-//     item.spans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-//   }
-  
-//   state.currentAudio.onended = () => {
-//     item.playing = false;
-//     state.playedCount += item.spans.length;
-//     state.queue.shift();
-//     state.currentAudio = null;
-//     updatePopup();
-    
-//     // scroll to last span we just finished
-//     if (item.spans.length > 0) {
-//       item.spans[item.spans.length - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
-//     }
-    
-//     // if we're done with all spans and queue is empty, auto stop
-//     if (state.nextSpanIndex >= state.allSpans.length && state.queue.length === 0) {
-//       stop();
-//       sendInfo('finished');
-//     } else {
-//       // keep buffering if needed
-//       fillBuffer();
-//       checkAndPlay();
-//     }
-//   };
-  
-//   state.currentAudio.play().catch(err => {
-//     sendError(`playback failed: ${err.message}`);
-//   });
-// }
-
-// function fillBuffer() {
-//   if (state.queue.length >= 2) return; // we have enough in flight
-  
-//   while (state.nextSpanIndex < state.allSpans.length && state.currentBufferWords < WORD_THRESHOLD) {
-//     const span = state.allSpans[state.nextSpanIndex];
-//     state.nextSpanIndex++;
-//     addToBuffer(span);
-//   }
-  
-//   // if we've reached the end and have a partial buffer, submit it
-//   if (state.nextSpanIndex >= state.allSpans.length && state.currentBuffer.length > 0) {
-//     submitBuffer();
-//   }
-  
-//   updatePopup();
-// }
-
-// function start() {
-//   console.log("Hi")
-//   if (state.allSpans.length === 0) {
-//     sendError('no spans found on this page');
-//     return;
-//   }
-  
-//   state.running = true;
-//   state.paused = false;
-//   state.nextSpanIndex = 0;
-//   state.playedCount = 0;
-  
-//   fillBuffer();
-//   checkAndPlay();
-//   updatePopup();
-// }
-
-// function pause() {
-//   state.paused = true;
-//   if (state.currentAudio) {
-//     state.currentAudio.pause();
-//   }
-//   updatePopup();
-// }
-
-// function resume() {
-//   state.paused = false;
-//   if (state.currentAudio) {
-//     state.currentAudio.play();
-//   }
-//   checkAndPlay();
-//   updatePopup();
-// }
-
-// function stop() {
-//   state.running = false;
-//   state.paused = false;
-  
-//   if (state.currentAudio) {
-//     state.currentAudio.pause();
-//     state.currentAudio = null;
-//   }
-  
-//   // revoke all audio URLs
-//   state.queue.forEach(item => {
-//     if (item.audioUrl) {
-//       URL.revokeObjectURL(item.audioUrl);
-//     }
-//   });
-  
-//   state.queue = [];
-//   state.currentBuffer = [];
-//   state.currentBufferWords = 0;
-//   state.nextSpanIndex = 0;
-//   state.playedCount = 0;
-  
-//   updatePopup();
-// }
-
-// function updatePopup() {
-//   const stats = {
-//     spansFound: state.allSpans.length,
-//     buffered: state.currentBuffer.length,
-//     inFlight: state.queue.filter(q => !q.ready).length,
-//     played: state.playedCount
-//   };
-  
-//   const statusMsg = state.running 
-//     ? (state.paused ? 'paused' : 'playing')
-//     : 'stopped';
-  
-//   chrome.runtime.sendMessage({
-//     type: 'update',
-//     stats,
-//     status: statusMsg
-//   }).catch(() => {}); // ignore if popup is closed
-// }
-
-// function sendError(msg) {
-//   chrome.runtime.sendMessage({
-//     type: 'error',
-//     error: msg
-//   }).catch(() => {});
-// }
-
-// function sendInfo(msg) {
-//   chrome.runtime.sendMessage({
-//     type: 'info',
-//     info: msg
-//   }).catch(() => {});
-// }
-
-// // listen for commands from popup
-// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-//   if (msg.action === 'start') {
-//     start();
-//   } else if (msg.action === 'pause') {
-//     if (state.paused) resume();
-//     else pause();
-//   } else if (msg.action === 'stop') {
-//     stop();
-//   }
-//   sendResponse({ ok: true });
-// });
-
-// // initialize on page load
-// console.log('=== CONTENT SCRIPT LOADED ===');
-// console.log('Location:', window.location.href);
-// console.log('Chrome runtime available:', typeof chrome !== 'undefined' && typeof chrome.runtime !== 'undefined');
-// init();
-
-
-
 // Cache for extracted data (persists while tab is open, cleared on reload)
 let cachedData = null;
+let cachedGroups = null;
+
+// Group spans by their common container ancestor
+// Climbs up past nested span wrappers to find the actual paragraph container
+function groupSpansByParent() {
+  const selector = 'span[data-text="true"]';
+  const spans = Array.from(document.querySelectorAll(selector));
+
+  const parentMap = new Map(); // container element -> array of spans
+
+  // For each span, find its container (climb past nested span wrappers)
+  for (const span of spans) {
+    let container = span.parentElement;
+
+    // Climb up past nested spans to find the real container
+    while (container && container.tagName === 'SPAN') {
+      container = container.parentElement;
+    }
+
+    if (!container) continue;
+
+    if (!parentMap.has(container)) {
+      parentMap.set(container, []);
+    }
+    parentMap.get(container).push(span);
+  }
+
+  // Convert map to array of groups, preserving document order
+  const allContainers = Array.from(parentMap.keys());
+
+  // Sort containers by document order (position of first child)
+  allContainers.sort((a, b) => {
+    const aFirst = parentMap.get(a)[0];
+    const bFirst = parentMap.get(b)[0];
+    const position = aFirst.compareDocumentPosition(bFirst);
+    return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+  });
+
+  // Build groups
+  const groups = [];
+  for (const container of allContainers) {
+    const containerSpans = parentMap.get(container);
+    // Sort spans within this container by document order
+    containerSpans.sort((a, b) => {
+      const position = a.compareDocumentPosition(b);
+      return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
+    });
+
+    // Combine text from all spans in this container
+    const combinedText = containerSpans
+      .map(s => s.textContent)
+      .join('');
+
+    groups.push({
+      parent: container,
+      spans: containerSpans,
+      text: combinedText,
+      spanCount: containerSpans.length
+    });
+  }
+
+  return groups;
+}
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Return cached data if available
@@ -302,66 +74,70 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   // Clear cache
   if (msg.type === "clearCache") {
     cachedData = null;
+    cachedGroups = null;
     sendResponse({ ok: true });
     return true;
   }
 
-  // Get text of a specific span by index
+  // Get text of a specific group by index
   if (msg.type === "getSpanText") {
-    const selector = 'span[data-text="true"]';
-    const nodes = document.querySelectorAll(selector);
+    const groups = groupSpansByParent();
     const index = msg.index;
 
-    if (index < 0 || index >= nodes.length) {
-      sendResponse({ ok: false, error: `Invalid index: ${index}. Valid range: 0-${nodes.length - 1}` });
+    if (index < 0 || index >= groups.length) {
+      sendResponse({ ok: false, error: `Invalid index: ${index}. Valid range: 0-${groups.length - 1}` });
       return true;
     }
 
-    const span = nodes[index];
+    const group = groups[index];
     sendResponse({
       ok: true,
       index: index,
-      text: span.textContent,
-      totalSpans: nodes.length
+      text: group.text,
+      spanCount: group.spanCount,
+      totalSpans: groups.length
     });
     return true;
   }
 
-  // Jump to (scroll to) a specific span
+  // Jump to (scroll to) a specific group
   if (msg.type === "jumpToSpan") {
-    const selector = 'span[data-text="true"]';
-    const nodes = document.querySelectorAll(selector);
+    const groups = groupSpansByParent();
     const index = msg.index;
 
-    if (index < 0 || index >= nodes.length) {
+    if (index < 0 || index >= groups.length) {
       sendResponse({ ok: false, error: `Invalid index: ${index}` });
       return true;
     }
 
-    const span = nodes[index];
-    span.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const group = groups[index];
+    // Scroll to the first span in the group
+    if (group.spans.length > 0) {
+      group.spans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
     sendResponse({ ok: true, index: index });
     return true;
   }
 
   if (msg.type !== "count") return;
 
-  const selector = 'span[data-text="true"]';
+  // Build groups and return summary
+  const groups = groupSpansByParent();
+  const rawSpans = document.querySelectorAll('span[data-text="true"]');
 
-  const nodes = document.querySelectorAll(selector);
-
-  // Collect all text from the spans
-  const fullText = Array.from(nodes)
-    .map(node => node.textContent)
+  // Collect all text from the groups
+  const fullText = groups
+    .map(g => g.text)
     .join(' ');
 
-  const firstSpanText = nodes.length > 0 ? nodes[0].textContent : '';
+  const firstGroupText = groups.length > 0 ? groups[0].text : '';
 
   // Cache the result
   cachedData = {
-    count: nodes.length,
+    count: groups.length,
+    rawSpanCount: rawSpans.length,
     text: fullText,
-    firstSpanText: firstSpanText
+    firstSpanText: firstGroupText
   };
 
   sendResponse(cachedData);
