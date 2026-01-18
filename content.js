@@ -289,7 +289,23 @@
 
 
 
+// Cache for extracted data (persists while tab is open, cleared on reload)
+let cachedData = null;
+
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Return cached data if available
+  if (msg.type === "getCache") {
+    sendResponse({ cached: cachedData });
+    return true;
+  }
+
+  // Clear cache
+  if (msg.type === "clearCache") {
+    cachedData = null;
+    sendResponse({ ok: true });
+    return true;
+  }
+
   if (msg.type !== "count") return;
 
   const selector = 'span[data-text="true"]';
@@ -303,10 +319,13 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
   const firstSpanText = nodes.length > 0 ? nodes[0].textContent : '';
 
-  sendResponse({
+  // Cache the result
+  cachedData = {
     count: nodes.length,
     text: fullText,
     firstSpanText: firstSpanText
-  });
-  return true; // THIS is the fix
+  };
+
+  sendResponse(cachedData);
+  return true;
 });

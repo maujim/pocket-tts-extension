@@ -100,6 +100,64 @@ let extractedText = "";
 let firstSpanText = "";
 let firstSpanAudioSize = 0;
 
+// Restore UI state from cached data
+function restoreFromCache(data) {
+  extractedText = data.text;
+  firstSpanText = data.firstSpanText;
+
+  const out = document.getElementById("out");
+  const copyBtn = document.getElementById("copy");
+  const openTabBtn = document.getElementById("openTab");
+  const playFirstBtn = document.getElementById("playFirst");
+
+  const charCount = extractedText.length;
+  const wordCount = extractedText.split(/\s+/).filter(w => w.length > 0).length;
+
+  out.textContent = `spans: ${data.count} | words: ${wordCount} | chars: ${charCount}`;
+
+  // Update first span info
+  if (firstSpanText) {
+    const spanInfoDiv = document.getElementById("spanInfo");
+    const spanTextDiv = document.getElementById("spanText");
+    const spanLengthSpan = document.getElementById("spanLength");
+    const spanWordsSpan = document.getElementById("spanWords");
+
+    const firstSpanWords = firstSpanText.split(/\s+/).filter(w => w.length > 0).length;
+    const preview = firstSpanText.length > 100 ? firstSpanText.substring(0, 100) + '...' : firstSpanText;
+
+    spanTextDiv.textContent = preview;
+    spanLengthSpan.textContent = firstSpanText.length;
+    spanWordsSpan.textContent = firstSpanWords;
+    spanInfoDiv.classList.add("visible");
+  }
+
+  // Enable buttons
+  copyBtn.disabled = !extractedText;
+  openTabBtn.disabled = !extractedText;
+  playFirstBtn.disabled = !firstSpanText;
+}
+
+// Check for cached data on popup open
+async function init() {
+  const [tab] = await chrome.tabs.query({
+    active: true,
+    currentWindow: true
+  });
+
+  chrome.tabs.sendMessage(
+    tab.id,
+    { type: "getCache" },
+    (res) => {
+      if (res && res.cached) {
+        restoreFromCache(res.cached);
+        document.getElementById("out").textContent += " (cached)";
+      }
+    }
+  );
+}
+
+init();
+
 document.getElementById("run").onclick = async () => {
   const out = document.getElementById("out");
   const copyBtn = document.getElementById("copy");
