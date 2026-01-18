@@ -3,6 +3,132 @@ let currentSpanIndex = 0;
 let currentSpanText = "";
 let lastPlayedAudioSize = 0;
 let totalSpanCount = 0;
+let currentStreamingPlayer = null;
+
+// Streaming WAV Player - plays audio as chunks arrive
+class StreamingWavPlayer {
+  constructor() {
+    this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    this.sampleRate = 0;
+    this.numChannels = 0;
+    this.headerParsed = false;
+    this.headerBuffer = new Uint8Array(44);
+    this.headerBytesReceived = 0;
+    this.nextStartTime = 0;
+    this.minBufferSize = 16384;
+    this.pcmData = new Uint8Array(0);
+    this.totalBytesReceived = 0;
+    this.onComplete = null;
+    this.onError = null;
+  }
+
+  parseWavHeader(header) {
+    const view = new DataView(header.buffer);
+
+    const riff = String.fromCharCode.apply(null, Array.from(header.slice(0, 4)));
+    const wave = String.fromCharCode.apply(null, Array.from(header.slice(8, 12)));
+
+    if (riff !== 'RIFF' || wave !== 'WAVE') {
+      throw new Error('Invalid WAV file');
+    }
+
+    this.numChannels = view.getUint16(22, true);
+    this.sampleRate = view.getUint32(24, true);
+
+    this.headerParsed = true;
+  }
+
+  appendPcmData(newData) {
+    const newBuffer = new Uint8Array(this.pcmData.length + newData.length);
+    newBuffer.set(this.pcmData);
+    newBuffer.set(newData, this.pcmData.length);
+    this.pcmData = newBuffer;
+  }
+
+  async tryPlayBuffer() {
+    if (!this.headerParsed || this.pcmData.length < this.minBufferSize) {
+      return;
+    }
+
+    const bytesPerSample = this.numChannels * 2; // 16-bit = 2 bytes
+    const samplesToPlay = Math.floor(this.pcmData.length / bytesPerSample);
+    const bytesToPlay = samplesToPlay * bytesPerSample;
+
+    if (bytesToPlay === 0) return;
+
+    const dataToPlay = this.pcmData.slice(0, bytesToPlay);
+    this.pcmData = this.pcmData.slice(bytesToPlay);
+
+    const audioBuffer = this.audioContext.createBuffer(
+      this.numChannels,
+      samplesToPlay,
+      this.sampleRate
+    );
+
+    const int16Data = new Int16Array(dataToPlay.buffer, dataToPlay.byteOffset, samplesToPlay * this.numChannels);
+
+    for (let channel = 0; channel < this.numChannels; channel++) {
+      const channelData = audioBuffer.getChannelData(channel);
+      for (let i = 0; i < samplesToPlay; i++) {
+        channelData[i] = int16Data[i * this.numChannels + channel] / 32768;
+      }
+    }
+
+    const source = this.audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(this.audioContext.destination);
+
+    const currentTime = this.audioContext.currentTime;
+    const startTime = Math.max(currentTime, this.nextStartTime);
+
+    source.start(startTime);
+    this.nextStartTime = startTime + audioBuffer.duration;
+
+    if (this.pcmData.length >= this.minBufferSize) {
+      setTimeout(() => this.tryPlayBuffer(), 10);
+    }
+  }
+
+  addChunk(chunk) {
+    this.totalBytesReceived += chunk.length;
+
+    if (!this.headerParsed) {
+      const headerBytesNeeded = 44 - this.headerBytesReceived;
+      const bytesToCopy = Math.min(headerBytesNeeded, chunk.length);
+
+      this.headerBuffer.set(
+        chunk.slice(0, bytesToCopy),
+        this.headerBytesReceived
+      );
+
+      this.headerBytesReceived += bytesToCopy;
+
+      if (this.headerBytesReceived >= 44) {
+        this.parseWavHeader(this.headerBuffer);
+
+        if (chunk.length > bytesToCopy) {
+          this.appendPcmData(chunk.slice(bytesToCopy));
+        }
+      }
+    } else {
+      this.appendPcmData(chunk);
+    }
+
+    this.tryPlayBuffer();
+  }
+
+  complete() {
+    if (this.onComplete) {
+      this.onComplete(this.totalBytesReceived);
+    }
+  }
+
+  stop() {
+    if (this.audioContext) {
+      this.audioContext.close();
+    }
+  }
+}
 
 // Update the span info panel
 function updateSpanInfo(text, index) {
@@ -66,16 +192,23 @@ async function loadSpan(index) {
   });
 }
 
-// Play audio for given text
+// Play audio for given text (streaming)
 async function playSpanAudio(text, spanIndex) {
   const out = document.getElementById("out");
   const playFirstBtn = document.getElementById("playFirst");
   const playCurrentBtn = document.getElementById("playCurrent");
+  const startTime = performance.now();
+
+  // Stop any currently playing audio
+  if (currentStreamingPlayer) {
+    currentStreamingPlayer.stop();
+    currentStreamingPlayer = null;
+  }
 
   try {
     playFirstBtn.disabled = true;
     playCurrentBtn.disabled = true;
-    out.textContent = `calling TTS API for span ${spanIndex}...`;
+    out.textContent = `connecting to TTS...`;
 
     const formData = new FormData();
     formData.append('text', text);
@@ -89,44 +222,73 @@ async function playSpanAudio(text, spanIndex) {
       throw new Error(`API error: ${response.status}`);
     }
 
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = new Audio(audioUrl);
+    out.textContent = `generating audio...`;
+    const firstAudioTime = performance.now();
 
-    // Store audio size for estimation
-    lastPlayedAudioSize = audioBlob.size;
+    // Create streaming player
+    currentStreamingPlayer = new StreamingWavPlayer();
+    const player = currentStreamingPlayer;
 
-    // Display WAV file size
-    const audioInfoDiv = document.getElementById("audioInfo");
-    const wavSizeSpan = document.getElementById("wavSize");
-    const sizeKB = (audioBlob.size / 1024).toFixed(2);
-    wavSizeSpan.textContent = `${sizeKB} KB (${audioBlob.size} bytes)`;
-    audioInfoDiv.classList.add("visible");
+    player.onComplete = (totalBytes) => {
+      lastPlayedAudioSize = totalBytes;
 
-    // Enable estimate button
-    document.getElementById("estimate").disabled = false;
+      // Display WAV file size
+      const audioInfoDiv = document.getElementById("audioInfo");
+      const wavSizeSpan = document.getElementById("wavSize");
+      const sizeKB = (totalBytes / 1024).toFixed(2);
+      wavSizeSpan.textContent = `${sizeKB} KB (${totalBytes} bytes)`;
+      audioInfoDiv.classList.add("visible");
 
-    out.textContent = `playing span ${spanIndex}...`;
+      // Enable estimate button
+      document.getElementById("estimate").disabled = false;
 
-    audio.onended = () => {
-      URL.revokeObjectURL(audioUrl);
-      out.textContent = "playback complete";
+      const totalTime = ((performance.now() - startTime) / 1000).toFixed(1);
+      const firstAudioSecs = ((firstAudioTime - startTime) / 1000).toFixed(2);
+      out.textContent = `done (${firstAudioSecs}s to first audio, ${totalTime}s total)`;
+
       playFirstBtn.disabled = totalSpanCount === 0;
       playCurrentBtn.disabled = !currentSpanText;
+      currentStreamingPlayer = null;
     };
 
-    audio.onerror = (err) => {
-      URL.revokeObjectURL(audioUrl);
-      out.textContent = `playback error: ${err.message || 'unknown error'}`;
-      playFirstBtn.disabled = totalSpanCount === 0;
-      playCurrentBtn.disabled = !currentSpanText;
+    // Read the stream and feed chunks to the player
+    const reader = response.body.getReader();
+    const processStream = async () => {
+      try {
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) {
+            player.complete();
+            break;
+          }
+
+          if (value) {
+            player.addChunk(value);
+
+            // Update status on first audio chunk
+            if (!player.firstAudioChunkTime) {
+              player.firstAudioChunkTime = performance.now();
+              const timeToFirst = ((player.firstAudioChunkTime - firstAudioTime) / 1000).toFixed(2);
+              out.textContent = `playing (first audio in ${timeToFirst}s)...`;
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error processing stream:', e);
+        out.textContent = `stream error: ${e.message}`;
+        playFirstBtn.disabled = totalSpanCount === 0;
+        playCurrentBtn.disabled = !currentSpanText;
+        currentStreamingPlayer = null;
+      }
     };
 
-    await audio.play();
+    processStream();
+
   } catch (err) {
     out.textContent = `TTS failed: ${err.message}`;
     playFirstBtn.disabled = totalSpanCount === 0;
     playCurrentBtn.disabled = !currentSpanText;
+    currentStreamingPlayer = null;
   }
 }
 

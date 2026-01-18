@@ -3,7 +3,9 @@
     "allow": [
       "WebSearch",
       "Bash(git add:*)",
-      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd text extraction, TTS playback, and audio size estimation\n\n- Extract and concatenate text from all spans\n- Add copy to clipboard and open in new tab buttons\n- Add TTS playback for first span via localhost API\n- Display first span info \\(text preview, char/word count\\)\n- Show WAV file size after TTS generation\n- Estimate full document audio size based on bytes/char ratio\n- Styled UI with info panels for span, audio, and estimate data\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n\\)\")"
+      "Bash(git commit -m \"$\\(cat <<''EOF''\nAdd text extraction, TTS playback, and audio size estimation\n\n- Extract and concatenate text from all spans\n- Add copy to clipboard and open in new tab buttons\n- Add TTS playback for first span via localhost API\n- Display first span info \\(text preview, char/word count\\)\n- Show WAV file size after TTS generation\n- Estimate full document audio size based on bytes/char ratio\n- Styled UI with info panels for span, audio, and estimate data\n\nCo-Authored-By: Claude <noreply@anthropic.com>\nEOF\n\\)\")",
+      "Bash(git commit:*)",
+      "Bash(curl:*)"
     ]
   }
 }
