@@ -301,9 +301,13 @@ function setupNarratorEventListeners() {
 
     logStatus(`Text extracted: ${totalSpanCount} spans | ${wordCount} words | ${charCount} chars`);
 
-    narratorUi.querySelector('#copy').disabled = !extractedText;
-    narratorUi.querySelector('#openTab').disabled = !extractedText;
-    narratorUi.querySelector('#playAll').disabled = totalSpanCount === 0;
+    const copyBtn = narratorUi.querySelector('#copy');
+    const openTabBtn = narratorUi.querySelector('#openTab');
+    const playAllBtn = narratorUi.querySelector('#playAll');
+
+    if (copyBtn) copyBtn.disabled = !extractedText;
+    if (openTabBtn) openTabBtn.disabled = !extractedText;
+    if (playAllBtn) playAllBtn.disabled = totalSpanCount === 0;
 
     totalSpans = totalSpanCount;
   };
@@ -420,20 +424,25 @@ function setupNarratorEventListeners() {
   };
 
   // Copy to clipboard
-  narratorUi.querySelector('#copy').onclick = async () => {
-    if (!extractedText) return;
+  const copyBtn = narratorUi.querySelector('#copy');
+  if (copyBtn) {
+    copyBtn.onclick = async () => {
+      if (!extractedText) return;
 
-    try {
-      await navigator.clipboard.writeText(extractedText);
-      logStatus("copied to clipboard!");
-    } catch (err) {
-      logStatus(`copy failed: ${err.message}`);
-    }
-  };
+      try {
+        await navigator.clipboard.writeText(extractedText);
+        logStatus("copied to clipboard!");
+      } catch (err) {
+        logStatus(`copy failed: ${err.message}`);
+      }
+    };
+  }
 
   // Open in new tab
-  narratorUi.querySelector('#openTab').onclick = () => {
-    if (!extractedText) return;
+  const openTabBtn = narratorUi.querySelector('#openTab');
+  if (openTabBtn) {
+    openTabBtn.onclick = () => {
+      if (!extractedText) return;
 
     const htmlContent = `
 <!DOCTYPE html>
@@ -466,7 +475,8 @@ function setupNarratorEventListeners() {
     const blob = new Blob([htmlContent], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     window.open(url, '_blank');
-  };
+    };
+  }
 }
 
 // Helper: Update button text content (handles nested span structure)
