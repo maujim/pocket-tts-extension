@@ -24,8 +24,8 @@ let resizeHandler = null;
 
 // Log a status message to the #out element
 function logStatus(message) {
-  const outEl = document.getElementById('out');
-  if (!outEl) return;
+  const debugLogEl = document.getElementById('out');
+  if (!debugLogEl) return;
 
   // Append to log array
   logEntries.push(message);
@@ -37,7 +37,7 @@ function logStatus(message) {
 
   // Update DOM with all entries using the cloned template
   if (logEntryTemplate) {
-    outEl.innerHTML = logEntries.map(entryText => {
+    debugLogEl.innerHTML = logEntries.map(entryText => {
       // Clone the template structure
       const clonedEntry = logEntryTemplate.cloneNode(true);
       // Find the inner span and update its text
@@ -52,7 +52,7 @@ function logStatus(message) {
     }).join('');
   } else {
     // Fallback to simple div structure if template not available
-    outEl.innerHTML = logEntries.map(entry => {
+    debugLogEl.innerHTML = logEntries.map(entry => {
       const div = document.createElement('div');
       div.className = 'log-entry';
       div.textContent = entry;
@@ -61,7 +61,7 @@ function logStatus(message) {
   }
 
   // Auto-scroll to bottom
-  outEl.scrollTop = outEl.scrollHeight;
+  debugLogEl.scrollTop = debugLogEl.scrollHeight;
 }
 
 // Sequential playback state
@@ -267,7 +267,7 @@ function cleanupPlayback() {
 // Play a single span's audio and return a promise that resolves when done
 async function playSingleSpan(text, spanIndex) {
   const startTime = performance.now();
-  const outEl = document.getElementById('out');
+  const debugLogEl = document.getElementById('out');
   const groups = groupSpansByParent();
 
   currentSpanIndex = spanIndex;
@@ -291,7 +291,7 @@ async function playSingleSpan(text, spanIndex) {
           const firstSpan = group.spans[0];
           firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
 
-          // Add 1-second highlight effect
+          // Add highlight effect
           group.spans.forEach(span => {
             span.style.transition = 'background-color 0.3s ease';
             span.style.backgroundColor = '#3b82f6'; // blue highlight
@@ -301,7 +301,7 @@ async function playSingleSpan(text, spanIndex) {
             group.spans.forEach(span => {
               span.style.backgroundColor = '';
             });
-          }, 1000);
+          }, 500);
         }
       }
     };
@@ -505,15 +505,15 @@ function setupNarratorEventListeners() {
 
   // Toggle debug log button
   narratorUi.querySelector('#toggleDebugLog').onclick = () => {
-    const outEl = narratorUi.querySelector('#out');
+    const debugLogEl = narratorUi.querySelector('#out');
     const separator = narratorUi.querySelector('#debugLogSeparator');
     const toggleBtn = narratorUi.querySelector('#toggleDebugLog');
-    if (outEl.style.display === 'none') {
-      outEl.style.display = 'block';
+    if (debugLogEl.style.display === 'none') {
+      debugLogEl.style.display = 'block';
       separator.style.display = 'block';
       updateButtonText(toggleBtn, 'Close Debug Log');
     } else {
-      outEl.style.display = 'none';
+      debugLogEl.style.display = 'none';
       separator.style.display = 'none';
       updateButtonText(toggleBtn, 'Open Debug Log');
     }
@@ -545,17 +545,17 @@ function setupNarratorEventListeners() {
     playSpansSequentially(sequentialSpans, 0);
   };
 
-  // Pause playback
+  // Pause/Resume playback
   narratorUi.querySelector('#pausePlayback').onclick = async () => {
-    if (isPlaying && currentPlayer) {
+    if (!currentPlayer) return;
+
+    if (isPlaying) {
       await currentPlayer.pause();
       isPlaying = false;
-      updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Resume');
       logStatus('paused');
-    } else if (currentPlayer) {
+    } else {
       await currentPlayer.resume();
       isPlaying = true;
-      updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Pause');
       logStatus('resumed');
     }
   };
