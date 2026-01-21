@@ -3,48 +3,48 @@
 ## Current Tasks
 
 ### 1. Fix Article Narrator Header
-- [ ] Simplify header cloning logic
-- [ ] Clone aside → find first child div → recurse to find first span → replace text with "Article Narrator"
-- [ ] Remove complex selector and text replacement logic currently in place
-- [ ] Commit
+- [x] Simplify header cloning logic
+- [x] Clone aside → find first child div → recurse to find first span → replace text with "Article Narrator"
+- [x] Remove complex selector and text replacement logic currently in place
+- [x] Commit
 
 ### 2. Fix Resume Button Appearance
-- [ ] Resume button looks bad after being paused
-- [ ] Fix the styling when button state changes from Pause to Resume
-- [ ] Commit
+- [x] Resume button looks bad after being paused
+- [x] Fix the styling when button state changes from Pause to Resume
+- [x] Commit
 
 ### 3. Clone Twitter Button Style for Copy/Open Buttons
-- [ ] Make Copy Text and Open in Tab buttons match Twitter's native button style
-- [ ] Use same Follow button cloning approach
-- [ ] Commit
+- [x] Make Copy Text and Open in Tab buttons match Twitter's native button style
+- [x] Use same Follow button cloning approach
+- [x] Commit
 
 ### 4. Remove Extract Text Button
-- [ ] Remove Extract Text button from template
-- [ ] Remove extractText function and related functionality
-- [ ] Auto-extract on page load instead
-- [ ] Commit
+- [x] Remove Extract Text button from template
+- [x] Remove extractText function and related functionality
+- [x] Auto-extract on page load instead
+- [x] Commit
 
 ### 5. Move Playback Buttons to Top
-- [ ] Move Play All/Pause/Stop buttons to top of Article Narrator
-- [ ] Update template structure
-- [ ] Commit
+- [x] Move Play All/Pause/Stop buttons to top of Article Narrator
+- [x] Update template structure
+- [x] Commit
 
 ### 6. Reposition Copy/Open Buttons
-- [ ] Move Copy Text and Open in Tab buttons below playback controls
-- [ ] Update template structure
-- [ ] Commit
+- [x] Move Copy Text and Open in Tab buttons below playback controls
+- [x] Update template structure
+- [x] Commit
 
 ### 7. Add Open Settings Button
-- [ ] Add 'Open settings' button below Copy/Open buttons
-- [ ] Clone appropriate Twitter button style (awaiting reference from user)
-- [ ] Implement settings toggle/modal
-- [ ] Commit
+- [x] Add 'Open settings' button below Copy/Open buttons
+- [x] Clone appropriate Twitter button style (awaiting reference from user)
+- [x] Implement settings toggle/modal
+- [x] Commit
 
 ### 8. centering + more
-- [ ] center the buttons in play/pause/stop
-- [ ] update architecture.md
+- [x] center the buttons in play/pause/stop
+- [x] update architecture.md
 
 
 ### finish
-- [ ] just say "DONE"
+- [x] just say "DONE"
 
