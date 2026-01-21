@@ -49,6 +49,23 @@ function logStatus(message) {
   outEl.scrollTop = outEl.scrollHeight;
 }
 
+// Initialize log with startup messages
+function initLog() {
+  const startupMessages = [
+    'Article Narrator ready',
+    'API: ' + apiUrl,
+    'Voice: ' + voice,
+    'Extract text to begin',
+    '---',
+  ];
+
+  // Pre-fill with startup messages and empty lines to reach MAX_LOG_ENTRIES
+  while (logEntries.length < MAX_LOG_ENTRIES) {
+    const msg = startupMessages[logEntries.length % startupMessages.length];
+    logStatus(logEntries.length < startupMessages.length ? msg : '...');
+  }
+}
+
 // Sequential playback state
 let currentPlayer = null;
 let isPlaying = false;
@@ -156,13 +173,8 @@ async function playSingleSpan(text, spanIndex) {
 
   return new Promise((resolve, reject) => {
     player.onComplete = (totalBytes) => {
-      const audioInfoDiv = document.getElementById("audioInfo");
-      const wavSizeSpan = document.getElementById("wavSize");
-      if (audioInfoDiv && wavSizeSpan) {
-        const sizeKB = (totalBytes / 1024).toFixed(2);
-        wavSizeSpan.textContent = `${sizeKB} KB (${totalBytes} bytes)`;
-        audioInfoDiv.classList.add("visible");
-      }
+      const sizeKB = (totalBytes / 1024).toFixed(2);
+      logStatus(`audio size: ${sizeKB} KB (${totalBytes} bytes)`);
 
       // Wait for audio playback to actually finish before resolving
       player.waitForPlaybackEnd().then(() => {
@@ -539,6 +551,7 @@ function setupNarratorUI() {
       console.log('Narrator UI: Injected');
 
       setupNarratorEventListeners();
+      initLog();
     })
     .catch(err => {
       console.error('Failed to load narrator UI template:', err);
