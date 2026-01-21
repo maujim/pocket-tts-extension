@@ -51,8 +51,9 @@ pocket-tts-extension/
   - Detects Twitter/X article pages via `span[data-text="true"]`
   - Loads HTML template from `narrator-ui.html`
   - Clones sidebar and injects narrator UI
-  - Sets up all event listeners (Extract, Play, Pause, Stop, navigation)
+  - Sets up all event listeners (Extract, Copy, Open Tab, Play All, Pause, Stop)
   - Manages playback state and sequential span playback
+  - Auto-scrolls to and highlights spans during playback
   - Coordinates with `StreamingWavPlayer` for audio
 - **State managed**:
   - `extractedText`, `currentSpanIndex`, `totalSpanCount`
@@ -62,9 +63,11 @@ pocket-tts-extension/
 - **Role**: Reusable HTML template
 - **Contents**:
   - Scoped `<style>` block with all UI CSS
-  - Button groups for Extract, Play, Pause, Stop
-  - Pagination controls (Prev/Next with counter)
-  - Info panels (span info, audio size, estimate)
+  - Settings rows (API URL, Voice selection)
+  - Extract Text button with Copy Text and Open in Tab buttons below it
+  - Status output div
+  - Audio info panel (shows WAV file size)
+  - Playback controls (Play All, Pause, Stop)
   - All UI elements with IDs for JS access
 - **Design**: Uses `<template>` tag, loaded via `chrome.runtime.getURL()`
 
@@ -96,14 +99,14 @@ User clicks "Extract Text"
 
 ### Audio Playback Flow (Single Span)
 ```
-User clicks "Play Current"
-  → narrator-ui.js: playSingleSpan()
+narrator-ui.js: playSingleSpan()
   → Sends "fetchTTS" message to background.js
   → background.js: POST to localhost:8000/tts
   → Streams back as "ttsChunk" messages
   → StreamingWavPlayer.addChunk()
   → AudioContext plays buffers
   → onComplete callback updates UI
+  → Auto-scrolls to and highlights the span being played
 ```
 
 ### Audio Playback Flow (Sequential/Play All)
