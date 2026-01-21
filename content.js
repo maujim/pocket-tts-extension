@@ -519,34 +519,30 @@ function setupNarratorUI() {
       narratorAside.setAttribute('aria-label', 'Article Narrator');
 
       // Copy the header structure from the original aside
-      // Try multiple selectors to find the header
-      let headerDiv = clonedAside.querySelector('div[dir="ltr"]');
-      if (!headerDiv) {
-        // Try finding any heading element
-        headerDiv = clonedAside.querySelector('h2, h3, div[class*="header"], div[class*="title"]');
-      }
-      if (!headerDiv) {
-        // Try finding the first div child
-        headerDiv = clonedAside.querySelector(':scope > div');
-      }
+      // Simple approach: clone aside → find first child div → recurse to find first span → replace text
+      const firstChildDiv = clonedAside.querySelector(':scope > div');
+      if (firstChildDiv) {
+        const newHeader = firstChildDiv.cloneNode(true);
 
-      if (headerDiv) {
-        const newHeader = headerDiv.cloneNode(true); // Clone with children to preserve structure
-        // Find the text node and replace it
-        const textElements = newHeader.querySelectorAll('*');
-        let replaced = false;
-        for (const el of textElements) {
-          if (el.childNodes.length === 1 && el.childNodes[0].nodeType === Node.TEXT_NODE && el.textContent.trim()) {
-            el.textContent = 'Article Narrator';
-            replaced = true;
-            break;
+        // Recursively find the first span and replace its text
+        function findFirstSpan(element) {
+          if (element.tagName === 'SPAN') {
+            return element;
           }
+          for (const child of element.children) {
+            const found = findFirstSpan(child);
+            if (found) return found;
+          }
+          return null;
         }
-        if (!replaced) {
+
+        const firstSpan = findFirstSpan(newHeader);
+        if (firstSpan) {
+          firstSpan.textContent = 'Article Narrator';
+        } else {
           newHeader.textContent = 'Article Narrator';
         }
         narratorAside.appendChild(newHeader);
-        console.log('Narrator UI: Header added', newHeader.outerHTML);
       } else {
         console.warn('Narrator UI: Could not find header div to clone');
       }
