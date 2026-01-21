@@ -17,6 +17,11 @@ const MAX_LOG_ENTRIES = 10;
 let logEntries = [];
 let logEntryTemplate = null; // Template for cloning log entry styles
 
+// Cleanup tracking
+let uiObserver = null;
+let visibilityCheckInterval = null;
+let resizeHandler = null;
+
 // Log a status message to the #out element
 function logStatus(message) {
   const outEl = document.getElementById('out');
@@ -684,7 +689,7 @@ function showNarratorUI() {
 
 function setupVisibilityObserver() {
   // Check visibility periodically
-  const checkInterval = setInterval(() => {
+  visibilityCheckInterval = setInterval(() => {
     const narratorUi = document.getElementById('narrator-ui');
     if (!narratorUi) return;
 
@@ -699,7 +704,7 @@ function setupVisibilityObserver() {
 
   // Also listen for window resize
   let resizeTimeout;
-  window.addEventListener('resize', () => {
+  resizeHandler = () => {
     clearTimeout(resizeTimeout);
     resizeTimeout = setTimeout(() => {
       const narratorUi = document.getElementById('narrator-ui');
@@ -711,7 +716,8 @@ function setupVisibilityObserver() {
         hideNarratorUI();
       }
     }, 300);
-  });
+  };
+  window.addEventListener('resize', resizeHandler);
 }
 
 // Inject narrator UI into the Twitter sidebar
@@ -976,11 +982,11 @@ function setupNarratorUI() {
 }
 
 // Use a MutationObserver to handle Twitter's dynamic content loading
-const observer = new MutationObserver(() => {
+uiObserver = new MutationObserver(() => {
   setupNarratorUI();
 });
 
-observer.observe(document.body, {
+uiObserver.observe(document.body, {
   childList: true,
   subtree: true,
 });
@@ -990,3 +996,50 @@ setupNarratorUI();
 
 // Setup visibility observer for responsive behavior
 setupVisibilityObserver();
+
+// Cleanup function to prevent memory leaks on page navigation
+function cleanup() {
+  // Stop the MutationObserver
+  if (uiObserver) {
+    uiObserver.disconnect();
+    uiObserver = null;
+  }
+
+  // Clear the visibility check interval
+  if (visibilityCheckInterval) {
+    clearInterval(visibilityCheckInterval);
+    visibilityCheckInterval = null;
+  }
+
+  // Remove the resize event listener
+  if (resizeHandler) {
+    window.removeEventListener('resize', resizeHandler);
+    resizeHandler = null;
+  }
+
+  // Stop any playing audio
+  if (currentPlayer) {
+    currentPlayer.stop();
+    currentPlayer = null;
+  }
+
+  console.log('Narrator: Cleaned up resources');
+}
+
+// Listen for page navigation (Twitter is a SPA)
+window.addEventListener('beforeunload', cleanup);
+
+// Also listen for URL changes (SPA navigation)
+let lastUrl = location.href;
+new MutationObserver(() => {
+  const url = location.href;
+  if (url !== lastUrl) {
+    lastUrl = url;
+    cleanup();
+    // Re-initialize after navigation
+    setTimeout(() => {
+      setupNarratorUI();
+      setupVisibilityObserver();
+    }, 100);
+  }
+}).observe(document, { subtree: true, childList: true });
