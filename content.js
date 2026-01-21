@@ -286,8 +286,8 @@ function setupNarratorEventListeners() {
   const narratorUi = document.getElementById('narrator-ui');
   if (!narratorUi) return;
 
-  // Extract text button
-  narratorUi.querySelector('#run').onclick = () => {
+  // Extract text function
+  const extractText = () => {
     const out = narratorUi.querySelector('#out');
 
     spanGroups = groupSpansByParent();
@@ -318,6 +318,12 @@ function setupNarratorEventListeners() {
       narratorUi.querySelector('#playCurrent').disabled = false;
     }
   };
+
+  // Auto-extract on load
+  extractText();
+
+  // Extract text button
+  narratorUi.querySelector('#run').onclick = extractText;
 
   // Play All (sequential playback)
   narratorUi.querySelector('#playAll').onclick = async () => {
