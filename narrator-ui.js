@@ -8,6 +8,7 @@ let currentSpanText = "";
 let lastPlayedAudioSize = 0;
 let totalSpanCount = 0;
 let spanGroups = [];
+let uiInjected = false;
 
 // Sequential playback state
 let currentPlayer = null;
@@ -536,12 +537,22 @@ function setupNarratorUI() {
   const hasArticleText = document.querySelector('span[data-text="true"]');
   if (!hasArticleText) return;
 
-  if (document.getElementById('narrator-ui')) return;
+  // Check if already injected
+  if (uiInjected || document.getElementById('narrator-ui')) {
+    return;
+  }
+  if (document.querySelector('aside[aria-label="Article Narrator"]')) {
+    uiInjected = true;
+    return;
+  }
 
   const sidebar = document.querySelector('aside[aria-label="Relevant people"]') ||
                   document.querySelector('aside');
 
   if (!sidebar) return;
+
+  // Mark injection as in progress
+  uiInjected = true;
 
   // Load the UI template
   fetch(chrome.runtime.getURL('narrator-ui.html'))
@@ -589,6 +600,7 @@ function setupNarratorUI() {
     })
     .catch(err => {
       console.error('Failed to load narrator UI template:', err);
+      uiInjected = false; // Reset flag on failure
     });
 }
 
