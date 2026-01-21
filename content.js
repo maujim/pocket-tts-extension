@@ -252,7 +252,7 @@ async function playSpansSequentially(spans, startOffset = 0) {
         narratorUi.querySelector('#playAll').disabled = false;
         narratorUi.querySelector('#pausePlayback').disabled = true;
         narratorUi.querySelector('#stopPlayback').disabled = true;
-        narratorUi.querySelector('#pausePlayback').textContent = 'Pause';
+        updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Pause');
       }
     }
     currentPlayer = null;
@@ -264,7 +264,7 @@ async function playSpansSequentially(spans, startOffset = 0) {
       narratorUi.querySelector('#playAll').disabled = false;
       narratorUi.querySelector('#pausePlayback').disabled = true;
       narratorUi.querySelector('#stopPlayback').disabled = true;
-      narratorUi.querySelector('#pausePlayback').textContent = 'Pause';
+      updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Pause');
     }
   }
 }
@@ -361,12 +361,12 @@ function setupNarratorEventListeners() {
     if (isPlaying && currentPlayer) {
       await currentPlayer.pause();
       isPlaying = false;
-      narratorUi.querySelector('#pausePlayback').textContent = 'Resume';
+      updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Resume');
       logStatus('paused');
     } else if (currentPlayer) {
       await currentPlayer.resume();
       isPlaying = true;
-      narratorUi.querySelector('#pausePlayback').textContent = 'Pause';
+      updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Pause');
       logStatus('resumed');
     }
   };
@@ -378,7 +378,7 @@ function setupNarratorEventListeners() {
     narratorUi.querySelector('#playAll').disabled = false;
     narratorUi.querySelector('#pausePlayback').disabled = true;
     narratorUi.querySelector('#stopPlayback').disabled = true;
-    narratorUi.querySelector('#pausePlayback').textContent = 'Pause';
+    updateButtonText(narratorUi.querySelector('#pausePlayback'), 'Pause');
     currentSpanIndex = 0;
   };
 
