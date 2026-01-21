@@ -65,8 +65,88 @@ let sequentialSpans = [];
 let totalSpans = 0;
 let currentChunkListener = null;
 
-// Group spans by their common container ancestor
+// Group spans by their common container ancestor with support for Pocket article structure
 function groupSpansByParent() {
+  // Try to find the main content container first
+  const contentRoot = document.querySelector('div.public-DraftEditor-content > div[data-contents="true"]');
+
+  if (!contentRoot) {
+    // Fallback to old behavior if Pocket structure not found
+    return groupSpansByParentLegacy();
+  }
+
+  const groups = [];
+  const unknownElements = new Set();
+
+  // Process each child of the content root
+  for (const child of contentRoot.children) {
+    // Skip separators
+    if (child.tagName === 'SECTION') {
+      const separator = child.querySelector('div[role="separator"]');
+      if (separator) continue;
+    }
+
+    let spans = [];
+
+    switch (child.tagName) {
+      case 'OL':
+      case 'UL':
+        // Handle lists - iterate each <li> and combine all spans within
+        const listItems = child.querySelectorAll(':scope > li');
+        for (const li of listItems) {
+          const liSpans = Array.from(li.querySelectorAll('span[data-text="true"]'));
+          spans.push(...liSpans);
+        }
+        break;
+
+      case 'DIV':
+        // Check for longform-unstyled class
+        if (child.classList.contains('longform-unstyled')) {
+          spans = Array.from(child.querySelectorAll('span[data-text="true"]'));
+        }
+        // Check for dir='ltr' (headings)
+        else if (child.getAttribute('dir') === 'ltr') {
+          spans = Array.from(child.querySelectorAll('span[data-text="true"]'));
+        }
+        else {
+          // Log unknown div type
+          const className = child.className || '(no class)';
+          unknownElements.add(`div.${className}`);
+        }
+        break;
+
+      case 'BLOCKQUOTE':
+        spans = Array.from(child.querySelectorAll('span[data-text="true"]'));
+        break;
+
+      default:
+        // Log unknown element type
+        unknownElements.add(`${child.tagName.toLowerCase()}`);
+        break;
+    }
+
+    // Add group if we found spans
+    if (spans.length > 0) {
+      const combinedText = spans.map(s => s.textContent).join('');
+      groups.push({
+        parent: child,
+        spans: spans,
+        text: combinedText,
+        spanCount: spans.length
+      });
+    }
+  }
+
+  // Log unknown elements if any
+  if (unknownElements.size > 0) {
+    console.log('Narrator: Unknown element types encountered:', Array.from(unknownElements).join(', '));
+  }
+
+  return groups;
+}
+
+// Legacy span grouping for non-Pocket pages
+function groupSpansByParentLegacy() {
   const selector = 'span[data-text="true"]';
   const spans = Array.from(document.querySelectorAll(selector));
 
