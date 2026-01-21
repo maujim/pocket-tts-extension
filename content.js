@@ -51,19 +51,10 @@ function logStatus(message) {
 
 // Initialize log with startup messages
 function initLog() {
-  const startupMessages = [
-    'Article Narrator ready',
-    'API: ' + apiUrl,
-    'Voice: ' + voice,
-    'Extract text to begin',
-    '---',
-  ];
-
-  // Pre-fill with startup messages and empty lines to reach MAX_LOG_ENTRIES
-  while (logEntries.length < MAX_LOG_ENTRIES) {
-    const msg = startupMessages[logEntries.length % startupMessages.length];
-    logStatus(logEntries.length < startupMessages.length ? msg : '...');
-  }
+  logStatus('Article Narrator ready');
+  logStatus('API: ' + apiUrl);
+  logStatus('Voice: ' + voice);
+  logStatus('Extract text to begin');
 }
 
 // Sequential playback state
