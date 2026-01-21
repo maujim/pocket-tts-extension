@@ -8,6 +8,9 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
 
     const formData = new FormData();
     formData.append('text', msg.text);
+    if (msg.voice) {
+      formData.append('voice_url', msg.voice);
+    }
 
     fetch(`${apiUrl}/tts`, {
       method: 'POST',

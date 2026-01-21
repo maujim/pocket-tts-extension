@@ -5,11 +5,11 @@
 let extractedText = "";
 let currentSpanIndex = 0;
 let currentSpanText = "";
-let lastPlayedAudioSize = 0;
 let totalSpanCount = 0;
 let spanGroups = [];
 let uiInjected = false;
 let apiUrl = localStorage.getItem('ttsApiUrl') || 'http://localhost:8000';
+let voice = localStorage.getItem('ttsVoice') || 'alba';
 
 // Sequential playback state
 let currentPlayer = null;
@@ -100,19 +100,12 @@ async function playSingleSpan(text, spanIndex) {
 
   return new Promise((resolve, reject) => {
     player.onComplete = (totalBytes) => {
-      lastPlayedAudioSize = totalBytes;
-
       const audioInfoDiv = document.getElementById("audioInfo");
       const wavSizeSpan = document.getElementById("wavSize");
       if (audioInfoDiv && wavSizeSpan) {
         const sizeKB = (totalBytes / 1024).toFixed(2);
         wavSizeSpan.textContent = `${sizeKB} KB (${totalBytes} bytes)`;
         audioInfoDiv.classList.add("visible");
-      }
-
-      const estimateBtn = document.getElementById("estimate");
-      if (estimateBtn) {
-        estimateBtn.disabled = false;
       }
 
       // Wait for audio playback to actually finish before resolving
@@ -163,7 +156,7 @@ async function playSingleSpan(text, spanIndex) {
     let firstAudioTime = startTime;
 
     chrome.runtime.sendMessage(
-      { type: "fetchTTS", text: text, apiUrl: apiUrl },
+      { type: "fetchTTS", text: text, apiUrl: apiUrl, voice: voice },
       (response) => {
         if (chrome.runtime.lastError) {
           chrome.runtime.onMessage.removeListener(chunkListener);
@@ -302,7 +295,6 @@ function setupNarratorEventListeners() {
 
     totalSpanCount = spanGroups.length;
     extractedText = spanGroups.map(g => g.text).join(' ');
-    lastPlayedAudioSize = 0;
 
     const charCount = extractedText.length;
     const wordCount = extractedText.split(/\s+/).filter(w => w.length > 0).length;
@@ -329,19 +321,30 @@ function setupNarratorEventListeners() {
     apiUrlInput.value = apiUrl;
   }
 
+  // Initialize voice select from saved value
+  const voiceSelect = narratorUi.querySelector('#voice');
+  if (voiceSelect) {
+    voiceSelect.value = voice;
+  }
+
   // Save settings button
   narratorUi.querySelector('#saveSettings').onclick = () => {
     const newUrl = apiUrlInput.value.trim();
     if (newUrl) {
       apiUrl = newUrl;
       localStorage.setItem('ttsApiUrl', apiUrl);
-      const out = narratorUi.querySelector('#out');
-      const originalText = out.textContent;
-      out.textContent = 'settings saved';
-      setTimeout(() => {
-        out.textContent = originalText;
-      }, 1500);
     }
+    const newVoice = voiceSelect.value;
+    if (newVoice) {
+      voice = newVoice;
+      localStorage.setItem('ttsVoice', voice);
+    }
+    const out = narratorUi.querySelector('#out');
+    const originalText = out.textContent;
+    out.textContent = 'settings saved';
+    setTimeout(() => {
+      out.textContent = originalText;
+    }, 1500);
   };
 
   // Auto-extract on load
@@ -532,34 +535,6 @@ function setupNarratorEventListeners() {
       out.textContent = `error: ${err.message}`;
       isPlaying = false;
     }
-  };
-
-  // Calculate estimated full audio size
-  narratorUi.querySelector('#estimate').onclick = () => {
-    const currentSpanChars = parseInt(narratorUi.querySelector('#spanLength').textContent, 10);
-
-    if (!lastPlayedAudioSize || !currentSpanChars || !extractedText) return;
-
-    const totalChars = extractedText.length;
-    const ratio = lastPlayedAudioSize / currentSpanChars;
-    const estimatedBytes = totalChars * ratio;
-    const estimatedKB = estimatedBytes / 1024;
-    const estimatedMB = estimatedKB / 1024;
-
-    const estimateInfoDiv = narratorUi.querySelector('#estimateInfo');
-    narratorUi.querySelector('#ratioDisplay').textContent = ratio.toFixed(2);
-    narratorUi.querySelector('#totalChars').textContent = totalChars.toLocaleString();
-
-    let sizeText;
-    if (estimatedMB >= 1) {
-      sizeText = `${estimatedMB.toFixed(2)} MB`;
-    } else {
-      sizeText = `${estimatedKB.toFixed(2)} KB`;
-    }
-    sizeText += ` (${Math.round(estimatedBytes).toLocaleString()} bytes)`;
-
-    narratorUi.querySelector('#estimatedSize').textContent = sizeText;
-    estimateInfoDiv.classList.add('visible');
   };
 }
 
