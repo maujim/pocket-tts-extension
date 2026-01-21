@@ -182,11 +182,12 @@ This review identified **47 issues** across severity levels:
   - Details: Variables like `logEntryTemplate` use camelCase, but inline styles use kebab-case. Some variables use underscores (`first_ul`), others don't.
   - Suggested fix: Use consistent naming conventions throughout.
 
-- [ ] **Unclear Variable Names**: What is 'out'?
+- [x] **Unclear Variable Names**: What is 'out'?
   - File: content.js:21, 494
   - Severity: Medium
   - Details: The variable name `outEl` for the debug log is unclear. Better to call it `debugLogEl` or `statusOutputEl`.
   - Suggested fix: Rename to more descriptive names like `debugLogElement`.
+  - **Fixed**: Commit c113c3d - Renamed to `debugLogEl`
 
 - [ ] **Global Variables**: Too many global variables
   - File: content.js:4-66
@@ -450,11 +451,12 @@ This review identified **47 issues** across severity levels:
 
 ### Medium Severity
 
-- [ ] **Confusing Controls**: Pause/Resume button behavior unclear
+- [x] **Confusing Controls**: Pause/Resume button behavior unclear
   - File: content.js:103-105, 535-546
   - Severity: Medium
   - Details: The button text changes from "Pause" to "Resume", but when playback completes, it stays on "Pause" (disabled). Users might be confused why they can't resume.
   - Suggested fix: Show clearer indication of playback state. Change button text to "Resume" when playback completes.
+  - **Fixed**: Commit c113c3d - Simplified: button always shows "Pause", toggles pause/resume on click
 
 - [ ] **No Volume Control**: Can't adjust volume
   - File: All files
