@@ -432,6 +432,26 @@ function setupNarratorEventListeners() {
   };
 }
 
+// Helper: Update button text content (handles nested span structure)
+function updateButtonText(button, text) {
+  // Try to find span with text content and update it
+  const textSpan = button.querySelector('span[class*="r-dnmrzs"]');
+  if (textSpan) {
+    textSpan.textContent = text;
+  } else {
+    // Fallback: try to find any span with text
+    const spans = button.querySelectorAll('span');
+    for (const span of spans) {
+      if (span.textContent && !span.querySelector('span')) {
+        span.textContent = text;
+        break;
+      }
+    }
+  }
+  // Update aria-label as well
+  button.setAttribute('aria-label', text);
+}
+
 // Inject narrator UI into the Twitter sidebar
 function setupNarratorUI() {
   const hasArticleText = document.querySelector('span[data-text="true"]');
@@ -474,6 +494,24 @@ function setupNarratorUI() {
       // Find the duplicate aside inside the cloned parent
       const clonedAside = clonedParent.querySelector('aside');
       if (!clonedAside) return;
+
+      // ISOLATE TARGET: Find the Follow button once from the cloned aside
+      const firstUl = clonedAside.querySelector(':scope > ul');
+      let followButton = null;
+      if (firstUl) {
+        const buttons = firstUl.querySelectorAll('button');
+        for (const btn of buttons) {
+          const ariaLabel = btn.getAttribute('aria-label') || '';
+          if (ariaLabel.includes('Follow')) {
+            followButton = btn;
+            break;
+          }
+        }
+      }
+
+      if (!followButton) {
+        console.warn('Narrator UI: Could not find Follow button to clone');
+      }
 
       // Create our custom narrator aside
       const narratorAside = document.createElement('aside');
@@ -520,6 +558,37 @@ function setupNarratorUI() {
 
       const narratorUi = document.createElement('div');
       narratorUi.appendChild(template.content.cloneNode(true));
+
+      // REPLACE BUTTONS: Clone the Follow button 3 times for our controls
+      if (followButton) {
+        const buttonContainer = narratorUi.querySelector('div[style*="display: flex"]:last-of-type');
+        if (buttonContainer) {
+          buttonContainer.innerHTML = ''; // Clear existing buttons
+
+          // Clone 3 times for Play All, Pause, Stop
+          const playAllBtn = followButton.cloneNode(true);
+          const pauseBtn = followButton.cloneNode(true);
+          const stopBtn = followButton.cloneNode(true);
+
+          playAllBtn.id = 'playAll';
+          playAllBtn.disabled = true;
+          updateButtonText(playAllBtn, 'Play All');
+
+          pauseBtn.id = 'pausePlayback';
+          pauseBtn.disabled = true;
+          updateButtonText(pauseBtn, 'Pause');
+
+          stopBtn.id = 'stopPlayback';
+          stopBtn.disabled = true;
+          updateButtonText(stopBtn, 'Stop');
+
+          buttonContainer.appendChild(playAllBtn);
+          buttonContainer.appendChild(pauseBtn);
+          buttonContainer.appendChild(stopBtn);
+
+          console.log('Narrator UI: Buttons cloned from Follow button');
+        }
+      }
 
       li.appendChild(narratorUi);
       ul.appendChild(li);
