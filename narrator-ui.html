@@ -1,13 +1,7 @@
 <!-- Reusable UI template injected by content.js -->
 <template id="narrator-ui-template">
   <style>
-    #narrator-ui * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    #narrator-ui {
+    .narrator-controls {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: 13px;
       color: #333;
@@ -15,7 +9,7 @@
       padding: 8px;
     }
 
-    #narrator-ui #out {
+    .narrator-controls #out {
       padding: 8px 10px;
       background: #fff;
       border: 1px solid #e5e7eb;
@@ -29,12 +23,12 @@
       -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 15%);
     }
 
-    #narrator-ui #out .log-entry {
+    .narrator-controls #out .log-entry {
       line-height: 1.5;
       padding: 2px 0;
     }
 
-    #narrator-ui .info-panel {
+    .narrator-controls .info-panel {
       padding: 8px 10px;
       border-radius: 6px;
       font-size: 11px;
@@ -42,16 +36,16 @@
       display: none;
     }
 
-    #narrator-ui .info-panel.visible {
+    .narrator-controls .info-panel.visible {
       display: block;
     }
 
-    #narrator-ui .info-panel.audio-info {
+    .narrator-controls .info-panel.audio-info {
       background: #fffbeb;
       border: 1px solid #fde68a;
     }
 
-    #narrator-ui .info-label {
+    .narrator-controls .info-label {
       font-weight: 600;
       color: #4b5563;
       font-size: 9px;
@@ -60,14 +54,14 @@
       margin-bottom: 3px;
     }
 
-    #narrator-ui .info-value.preview {
+    .narrator-controls .info-value.preview {
       font-style: italic;
       color: #6b7280;
       margin: 4px 0;
       line-height: 1.4;
     }
 
-    #narrator-ui .info-row {
+    .narrator-controls .info-row {
       display: flex;
       justify-content: space-between;
       margin-top: 4px;
@@ -75,28 +69,28 @@
       border-top: 1px solid rgba(0,0,0,0.06);
     }
 
-    #narrator-ui .info-row span {
+    .narrator-controls .info-row span {
       color: #9ca3af;
       font-size: 10px;
     }
 
-    #narrator-ui .info-row strong {
+    .narrator-controls .info-row strong {
       color: #374151;
       font-weight: 600;
     }
 
-    #narrator-ui .btn-group {
+    .narrator-controls .btn-group {
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
 
-    #narrator-ui .btn-row {
+    .narrator-controls .btn-row {
       display: flex;
       gap: 6px;
     }
 
-    #narrator-ui button {
+    .narrator-controls button {
       flex: 1;
       padding: 8px 12px;
       font-family: inherit;
@@ -110,64 +104,64 @@
       color: #374151;
     }
 
-    #narrator-ui button:hover:not(:disabled) {
+    .narrator-controls button:hover:not(:disabled) {
       background: #f9fafb;
       border-color: #d1d5db;
     }
 
-    #narrator-ui button:active:not(:disabled) {
+    .narrator-controls button:active:not(:disabled) {
       background: #f3f4f6;
       transform: translateY(1px);
     }
 
-    #narrator-ui button:disabled {
+    .narrator-controls button:disabled {
       opacity: 0.5;
       cursor: not-allowed;
     }
 
-    #narrator-ui button.primary {
+    .narrator-controls button.primary {
       background: #2563eb;
       color: white;
       border-color: #2563eb;
     }
 
-    #narrator-ui button.primary:hover:not(:disabled) {
+    .narrator-controls button.primary:hover:not(:disabled) {
       background: #1d4ed8;
       border-color: #1d4ed8;
     }
 
-    #narrator-ui button.danger {
+    .narrator-controls button.danger {
       background: #ef4444;
       color: white;
       border-color: #ef4444;
     }
 
-    #narrator-ui button.danger:hover:not(:disabled) {
+    .narrator-controls button.danger:hover:not(:disabled) {
       background: #dc2626;
       border-color: #dc2626;
     }
 
-    #narrator-ui .divider {
+    .narrator-controls .divider {
       height: 1px;
       background: #e5e7eb;
       margin: 10px 0;
     }
 
-    #narrator-ui .settings-row {
+    .narrator-controls .settings-row {
       display: flex;
       align-items: center;
       gap: 6px;
       margin-bottom: 8px;
     }
 
-    #narrator-ui .settings-row label {
+    .narrator-controls .settings-row label {
       font-size: 10px;
       color: #6b7280;
       font-weight: 500;
       white-space: nowrap;
     }
 
-    #narrator-ui .settings-row input {
+    .narrator-controls .settings-row input {
       flex: 1;
       padding: 6px 8px;
       font-size: 11px;
@@ -178,19 +172,19 @@
       color: #374151;
     }
 
-    #narrator-ui .settings-row input:focus {
+    .narrator-controls .settings-row input:focus {
       outline: none;
       border-color: #2563eb;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
     }
 
-    #narrator-ui .settings-row button {
+    .narrator-controls .settings-row button {
       flex: 0 0 auto;
       padding: 6px 10px;
       font-size: 10px;
     }
 
-    #narrator-ui .settings-row select {
+    .narrator-controls .settings-row select {
       flex: 1;
       padding: 6px 8px;
       font-size: 11px;
@@ -201,62 +195,64 @@
       color: #374151;
     }
 
-    #narrator-ui .settings-row select:focus {
+    .narrator-controls .settings-row select:focus {
       outline: none;
       border-color: #2563eb;
       box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
     }
   </style>
 
-  <div class="settings-row">
-    <label for="apiUrl">API URL</label>
-    <input id="apiUrl" type="text" placeholder="http://localhost:8000" value="http://localhost:8000">
-    <button id="saveSettings">Save</button>
-  </div>
-
-  <div class="settings-row">
-    <label for="voice">Voice</label>
-    <select id="voice">
-      <option value="alba">alba</option>
-      <option value="marius">marius</option>
-      <option value="javert">javert</option>
-      <option value="jean">jean</option>
-      <option value="fantine">fantine</option>
-      <option value="cosette">cosette</option>
-      <option value="eponine">eponine</option>
-      <option value="azelma">azelma</option>
-    </select>
-  </div>
-
-  <div class="btn-group">
-    <button id="run" class="primary">Extract Text</button>
-    <div class="btn-row">
-      <button id="copy" disabled>Copy Text</button>
-      <button id="openTab" disabled>Open in Tab</button>
+  <div class="narrator-controls">
+    <div class="settings-row">
+      <label for="apiUrl">API URL</label>
+      <input id="apiUrl" type="text" placeholder="http://localhost:8000" value="http://localhost:8000">
+      <button id="saveSettings">Save</button>
     </div>
-  </div>
 
-  <div class="divider"></div>
-
-  <div id="out">Ready</div>
-
-  <div class="divider"></div>
-
-  <div id="audioInfo" class="info-panel audio-info">
-    <div class="info-label">Audio</div>
-    <div class="info-row" style="margin-top: 0; padding-top: 0; border: none;">
-      <span>Size</span>
-      <span><strong id="wavSize">—</strong></span>
+    <div class="settings-row">
+      <label for="voice">Voice</label>
+      <select id="voice">
+        <option value="alba">alba</option>
+        <option value="marius">marius</option>
+        <option value="javert">javert</option>
+        <option value="jean">jean</option>
+        <option value="fantine">fantine</option>
+        <option value="cosette">cosette</option>
+        <option value="eponine">eponine</option>
+        <option value="azelma">azelma</option>
+      </select>
     </div>
-  </div>
 
-  <div class="divider"></div>
+    <div class="btn-group">
+      <button id="run" class="primary">Extract Text</button>
+      <div class="btn-row">
+        <button id="copy" disabled>Copy Text</button>
+        <button id="openTab" disabled>Open in Tab</button>
+      </div>
+    </div>
 
-  <div class="btn-group">
-    <div class="btn-row">
-      <button id="playAll" class="primary" disabled>Play All</button>
-      <button id="pausePlayback" disabled>Pause</button>
-      <button id="stopPlayback" class="danger" disabled>Stop</button>
+    <div class="divider"></div>
+
+    <div id="out">Ready</div>
+
+    <div class="divider"></div>
+
+    <div id="audioInfo" class="info-panel audio-info">
+      <div class="info-label">Audio</div>
+      <div class="info-row" style="margin-top: 0; padding-top: 0; border: none;">
+        <span>Size</span>
+        <span><strong id="wavSize">—</strong></span>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="btn-group">
+      <div class="btn-row">
+        <button id="playAll" class="primary" disabled>Play All</button>
+        <button id="pausePlayback" disabled>Pause</button>
+        <button id="stopPlayback" class="danger" disabled>Stop</button>
+      </div>
     </div>
   </div>
 </template>
