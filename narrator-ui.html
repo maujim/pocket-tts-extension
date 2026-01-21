@@ -1,25 +1,16 @@
 <!-- Reusable UI template injected by content.js -->
 <template id="narrator-ui-template">
   <div style="padding: 12px;">
-    <!-- Playback buttons at the top -->
+    <!-- Segment 1: Playback buttons (always visible) -->
     <div id="playbackButtons" style="display: flex; gap: 8px; margin-bottom: 12px; justify-content: space-evenly;"></div>
 
-    <!-- Separator after playback buttons -->
+    <!-- Separator 1: Between play segment and settings segment (always visible) -->
     <div id="separator1" style="margin-bottom: 12px;"></div>
 
-    <!-- Settings toggle button -->
+    <!-- Segment 2: Settings (always visible - either button or panel) -->
     <div id="openSettingsButton" style="margin-bottom: 12px;"></div>
 
-    <!-- Separator before debug log (hidden by default) -->
-    <div id="debugLogTopSeparator" style="display: none; margin-bottom: 12px;"></div>
-
-    <!-- Output log (hidden by default) -->
-    <div id="out" style="display: none; margin-bottom: 12px; height: 150px; overflow-y: auto;"></div>
-
-    <!-- Separator after debug log (hidden by default) -->
-    <div id="debugLogBottomSeparator" style="display: none; margin-bottom: 12px;"></div>
-
-    <!-- Settings section (hidden by default) -->
+    <!-- Settings panel (hidden by default) -->
     <div id="settingsSection" style="display: none;">
       <!-- Endpoint setting -->
       <div style="margin-bottom: 12px;">
@@ -51,5 +42,11 @@
         <div id="debugLogButton" style="flex: 1;"></div>
       </div>
     </div>
+
+    <!-- Separator 2: Between settings segment and debug log segment (hidden by default) -->
+    <div id="debugLogSeparator" style="display: none; margin-bottom: 12px;"></div>
+
+    <!-- Segment 3: Debug log (hidden by default) -->
+    <div id="out" style="display: none; margin-bottom: 12px; height: 150px; overflow-y: auto;"></div>
   </div>
 </template>

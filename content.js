@@ -354,18 +354,15 @@ function setupNarratorEventListeners() {
   // Toggle debug log button
   narratorUi.querySelector('#toggleDebugLog').onclick = () => {
     const outEl = narratorUi.querySelector('#out');
-    const topSep = narratorUi.querySelector('#debugLogTopSeparator');
-    const bottomSep = narratorUi.querySelector('#debugLogBottomSeparator');
+    const separator = narratorUi.querySelector('#debugLogSeparator');
     const toggleBtn = narratorUi.querySelector('#toggleDebugLog');
     if (outEl.style.display === 'none') {
       outEl.style.display = 'block';
-      topSep.style.display = 'block';
-      bottomSep.style.display = 'block';
+      separator.style.display = 'block';
       updateButtonText(toggleBtn, 'Close Debug Log');
     } else {
       outEl.style.display = 'none';
-      topSep.style.display = 'none';
-      bottomSep.style.display = 'none';
+      separator.style.display = 'none';
       updateButtonText(toggleBtn, 'Open Debug Log');
     }
   };
@@ -633,11 +630,9 @@ function setupNarratorUI() {
       // Add separators to their containers
       if (separatorTemplate) {
         const separator1 = narratorUi.querySelector('#separator1');
-        const debugLogTopSep = narratorUi.querySelector('#debugLogTopSeparator');
-        const debugLogBottomSep = narratorUi.querySelector('#debugLogBottomSeparator');
+        const debugLogSep = narratorUi.querySelector('#debugLogSeparator');
         if (separator1) separator1.appendChild(separatorTemplate.cloneNode(true));
-        if (debugLogTopSep) debugLogTopSep.appendChild(separatorTemplate.cloneNode(true));
-        if (debugLogBottomSep) debugLogBottomSep.appendChild(separatorTemplate.cloneNode(true));
+        if (debugLogSep) debugLogSep.appendChild(separatorTemplate.cloneNode(true));
       }
 
       // REPLACE BUTTONS: Clone the Follow button for our controls
