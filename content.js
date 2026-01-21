@@ -775,6 +775,35 @@ function setupNarratorUI() {
       narratorAside.id = 'narrator-ui';
       narratorAside.setAttribute('aria-label', 'Article Narrator');
 
+      // Add progress bar at the very top (before header)
+      const progressSection = document.createElement('div');
+      progressSection.id = 'progressSection';
+      progressSection.style.padding = '12px 12px 0 12px';
+      const progressText = document.createElement('div');
+      progressText.id = 'progressText';
+      progressText.style.fontSize = '12px';
+      progressText.style.color = 'rgb(91, 112, 131)';
+      progressText.style.marginBottom = '4px';
+      progressText.style.textAlign = 'left';
+      progressText.textContent = 'Not started';
+      const progressBarTrack = document.createElement('div');
+      progressBarTrack.id = 'progressBarTrack';
+      progressBarTrack.style.width = '100%';
+      progressBarTrack.style.height = '4px';
+      progressBarTrack.style.backgroundColor = 'rgb(61, 81, 100)';
+      progressBarTrack.style.borderRadius = '2px';
+      progressBarTrack.style.overflow = 'hidden';
+      const progressBarFill = document.createElement('div');
+      progressBarFill.id = 'progressBarFill';
+      progressBarFill.style.width = '0%';
+      progressBarFill.style.height = '100%';
+      progressBarFill.style.backgroundColor = 'rgb(29, 155, 240)';
+      progressBarFill.style.transition = 'width 0.3s ease';
+      progressBarTrack.appendChild(progressBarFill);
+      progressSection.appendChild(progressText);
+      progressSection.appendChild(progressBarTrack);
+      narratorAside.appendChild(progressSection);
+
       // Copy the header structure from the original aside
       // Simple approach: clone aside → find first child div → recurse to find first span → replace text
       const firstChildDiv = clonedAside.querySelector(':scope > div');
