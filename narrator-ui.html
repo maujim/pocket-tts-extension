@@ -2,23 +2,35 @@
 <template id="narrator-ui-template">
   <div style="padding: 12px;">
     <!-- Playback buttons at the top -->
-    <div id="playbackButtons" style="display: flex; gap: 8px; margin-bottom: 12px; justify-content: center;"></div>
+    <div id="playbackButtons" style="display: flex; gap: 8px; margin-bottom: 12px; justify-content: space-evenly;"></div>
 
-    <!-- Copy/Open buttons below playback controls -->
-    <div id="copyOpenButtons" style="display: flex; gap: 8px; margin-bottom: 12px;"></div>
+    <!-- Separator after playback buttons -->
+    <div id="separator1" style="margin-bottom: 12px;"></div>
 
-    <!-- Open settings button -->
+    <!-- Settings toggle button -->
     <div id="openSettingsButton" style="margin-bottom: 12px;"></div>
+
+    <!-- Separator before debug log (hidden by default) -->
+    <div id="debugLogTopSeparator" style="display: none; margin-bottom: 12px;"></div>
+
+    <!-- Output log (hidden by default) -->
+    <div id="out" style="display: none; margin-bottom: 12px; height: 150px; overflow-y: auto;"></div>
+
+    <!-- Separator after debug log (hidden by default) -->
+    <div id="debugLogBottomSeparator" style="display: none; margin-bottom: 12px;"></div>
 
     <!-- Settings section (hidden by default) -->
     <div id="settingsSection" style="display: none;">
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <input id="apiUrl" type="text" placeholder="API URL" value="http://localhost:8000" style="flex: 1;">
-        <button id="saveSettings">Save</button>
+      <!-- Endpoint setting -->
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 12px; color: rgb(91, 112, 131); margin-bottom: 4px;">Endpoint</div>
+        <input id="apiUrl" type="text" placeholder="API URL" value="http://localhost:8000" style="width: 100%;">
       </div>
 
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <select id="voice" style="flex: 1;">
+      <!-- Voice setting -->
+      <div style="margin-bottom: 12px;">
+        <div style="font-size: 12px; color: rgb(91, 112, 131); margin-bottom: 4px;">Voice</div>
+        <select id="voice" style="width: 100%;">
           <option value="alba">alba</option>
           <option value="marius">marius</option>
           <option value="javert">javert</option>
@@ -29,9 +41,15 @@
           <option value="azelma">azelma</option>
         </select>
       </div>
-    </div>
 
-    <!-- Output log at the bottom -->
-    <div id="out" style="margin-bottom: 12px; height: 150px; overflow-y: auto;"></div>
+      <!-- Copy/Open buttons (hidden for now) -->
+      <div id="copyOpenButtons" style="display: none;"></div>
+
+      <!-- Save and Debug Log buttons on same line -->
+      <div id="saveAndDebugButtons" style="display: flex; gap: 8px; margin-top: 12px; justify-content: space-evenly;">
+        <div id="saveSettingsButton" style="flex: 1;"></div>
+        <div id="debugLogButton" style="flex: 1;"></div>
+      </div>
+    </div>
   </div>
 </template>

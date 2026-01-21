@@ -13,6 +13,8 @@ class StreamingWavPlayer {
     this.totalBytesReceived = 0;
     this.onComplete = null;
     this.onError = null;
+    this.onFirstPlay = null;
+    this.hasPlayed = false;
   }
 
   parseWavHeader(header) {
@@ -76,6 +78,12 @@ class StreamingWavPlayer {
 
     source.start(startTime);
     this.nextStartTime = startTime + audioBuffer.duration;
+
+    // Fire onFirstPlay callback the first time audio actually plays
+    if (!this.hasPlayed && this.onFirstPlay) {
+      this.hasPlayed = true;
+      this.onFirstPlay();
+    }
 
     if (this.pcmData.length >= this.minBufferSize) {
       setTimeout(() => this.tryPlayBuffer(), 10);

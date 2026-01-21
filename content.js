@@ -13,37 +13,46 @@ let voice = localStorage.getItem('ttsVoice') || 'alba';
 
 // Logging state
 const MAX_LOG_ENTRIES = 10;
-const ENABLE_TIMESTAMPS = true;
 let logEntries = [];
+let logEntryTemplate = null; // Template for cloning log entry styles
 
 // Log a status message to the #out element
 function logStatus(message) {
   const outEl = document.getElementById('out');
   if (!outEl) return;
 
-  // Add timestamp if enabled
-  let entry = message;
-  if (ENABLE_TIMESTAMPS) {
-    const now = new Date();
-    const timestamp = now.toTimeString().split(' ')[0]; // HH:MM:SS
-    entry = `[${timestamp}] ${message}`;
-  }
-
   // Append to log array
-  logEntries.push(entry);
+  logEntries.push(message);
 
   // Trim to max entries
   if (logEntries.length > MAX_LOG_ENTRIES) {
     logEntries = logEntries.slice(-MAX_LOG_ENTRIES);
   }
 
-  // Update DOM with all entries
-  outEl.innerHTML = logEntries.map(entry => {
-    const div = document.createElement('div');
-    div.className = 'log-entry';
-    div.textContent = entry;
-    return div.outerHTML;
-  }).join('');
+  // Update DOM with all entries using the cloned template
+  if (logEntryTemplate) {
+    outEl.innerHTML = logEntries.map(entryText => {
+      // Clone the template structure
+      const clonedEntry = logEntryTemplate.cloneNode(true);
+      // Find the inner span and update its text
+      const innerSpan = clonedEntry.querySelector('span');
+      if (innerSpan) {
+        innerSpan.textContent = entryText;
+      } else {
+        // Fallback if no span found
+        clonedEntry.textContent = entryText;
+      }
+      return clonedEntry.outerHTML;
+    }).join('');
+  } else {
+    // Fallback to simple div structure if template not available
+    outEl.innerHTML = logEntries.map(entry => {
+      const div = document.createElement('div');
+      div.className = 'log-entry';
+      div.textContent = entry;
+      return div.outerHTML;
+    }).join('');
+  }
 
   // Auto-scroll to bottom
   outEl.scrollTop = outEl.scrollHeight;
@@ -126,27 +135,6 @@ async function playSingleSpan(text, spanIndex) {
 
   currentSpanIndex = spanIndex;
 
-  // Auto-scroll to and highlight the current span
-  if (spanIndex >= 0 && spanIndex < groups.length) {
-    const group = groups[spanIndex];
-    if (group.spans.length > 0) {
-      const firstSpan = group.spans[0];
-      firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-      // Add 1-second highlight effect
-      group.spans.forEach(span => {
-        span.style.transition = 'background-color 0.3s ease';
-        span.style.backgroundColor = '#3b82f6'; // blue highlight
-      });
-
-      setTimeout(() => {
-        group.spans.forEach(span => {
-          span.style.backgroundColor = '';
-        });
-      }, 1000);
-    }
-  }
-
   // Log span playback start (1-indexed for display)
   logStatus(`playing span ${spanIndex + 1} of ${totalSpans}`);
   logStatus('connecting to TTS...');
@@ -155,6 +143,29 @@ async function playSingleSpan(text, spanIndex) {
   currentPlayer = player;
 
   return new Promise((resolve, reject) => {
+    // Highlight and scroll to span when audio actually starts playing
+    player.onFirstPlay = () => {
+      if (spanIndex >= 0 && spanIndex < groups.length) {
+        const group = groups[spanIndex];
+        if (group.spans.length > 0) {
+          const firstSpan = group.spans[0];
+          firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+          // Add 1-second highlight effect
+          group.spans.forEach(span => {
+            span.style.transition = 'background-color 0.3s ease';
+            span.style.backgroundColor = '#3b82f6'; // blue highlight
+          });
+
+          setTimeout(() => {
+            group.spans.forEach(span => {
+              span.style.backgroundColor = '';
+            });
+          }, 1000);
+        }
+      }
+    };
+
     player.onComplete = (totalBytes) => {
       const sizeKB = (totalBytes / 1024).toFixed(2);
       logStatus(`audio size: ${sizeKB} KB (${totalBytes} bytes)`);
@@ -162,7 +173,7 @@ async function playSingleSpan(text, spanIndex) {
       // Wait for audio playback to actually finish before resolving
       player.waitForPlaybackEnd().then(() => {
         const totalTime = ((performance.now() - startTime) / 1000).toFixed(1);
-        const firstAudioSecs = ((firstAudioTime - startTime) / 1000).toFixed(2);
+        const firstAudioSecs = ((player.firstAudioChunkTime - startTime) / 1000).toFixed(2);
         logStatus(`done (${firstAudioSecs}s to first audio, ${totalTime}s total)`);
 
         currentPlayer = null;
@@ -174,6 +185,8 @@ async function playSingleSpan(text, spanIndex) {
       currentPlayer = null;
       reject(error);
     };
+
+    let firstAudioTime = startTime;
 
     const chunkListener = (msg) => {
       if (msg.type === 'ttsChunk') {
@@ -199,8 +212,6 @@ async function playSingleSpan(text, spanIndex) {
       currentChunkListener = null;
       if (originalOnComplete) originalOnComplete(totalBytes);
     };
-
-    let firstAudioTime = startTime;
 
     chrome.runtime.sendMessage(
       { type: "fetchTTS", text: text, apiUrl: apiUrl, voice: voice },
@@ -288,8 +299,7 @@ function setupNarratorEventListeners() {
     const charCount = extractedText.length;
     const wordCount = extractedText.split(/\s+/).filter(w => w.length > 0).length;
 
-    logStatus(`Text extracted`);
-    logStatus(`spans: ${totalSpanCount} | words: ${wordCount} | chars: ${charCount}`);
+    logStatus(`Text extracted: ${totalSpanCount} spans | ${wordCount} words | ${charCount} chars`);
 
     narratorUi.querySelector('#copy').disabled = !extractedText;
     narratorUi.querySelector('#openTab').disabled = !extractedText;
@@ -310,20 +320,23 @@ function setupNarratorEventListeners() {
     voiceSelect.value = voice;
   }
 
-  // Save settings button
-  narratorUi.querySelector('#saveSettings').onclick = () => {
+  // Save settings button - now a cloned button
+  const saveSettingsBtn = narratorUi.querySelector('#saveSettings');
+  if (saveSettingsBtn) {
+    saveSettingsBtn.onclick = () => {
     const newUrl = apiUrlInput.value.trim();
     if (newUrl) {
       apiUrl = newUrl;
       localStorage.setItem('ttsApiUrl', apiUrl);
     }
-    const newVoice = voiceSelect.value;
-    if (newVoice) {
-      voice = newVoice;
-      localStorage.setItem('ttsVoice', voice);
-    }
-    logStatus('settings saved');
-  };
+      const newVoice = voiceSelect.value;
+      if (newVoice) {
+        voice = newVoice;
+        localStorage.setItem('ttsVoice', voice);
+      }
+      logStatus('settings saved');
+    };
+  }
 
   // Toggle settings button
   narratorUi.querySelector('#toggleSettings').onclick = () => {
@@ -335,6 +348,25 @@ function setupNarratorEventListeners() {
     } else {
       settingsSection.style.display = 'none';
       updateButtonText(toggleBtn, 'Open settings');
+    }
+  };
+
+  // Toggle debug log button
+  narratorUi.querySelector('#toggleDebugLog').onclick = () => {
+    const outEl = narratorUi.querySelector('#out');
+    const topSep = narratorUi.querySelector('#debugLogTopSeparator');
+    const bottomSep = narratorUi.querySelector('#debugLogBottomSeparator');
+    const toggleBtn = narratorUi.querySelector('#toggleDebugLog');
+    if (outEl.style.display === 'none') {
+      outEl.style.display = 'block';
+      topSep.style.display = 'block';
+      bottomSep.style.display = 'block';
+      updateButtonText(toggleBtn, 'Close Debug Log');
+    } else {
+      outEl.style.display = 'none';
+      topSep.style.display = 'none';
+      bottomSep.style.display = 'none';
+      updateButtonText(toggleBtn, 'Open Debug Log');
     }
   };
 
@@ -359,9 +391,7 @@ function setupNarratorEventListeners() {
     narratorUi.querySelector('#pausePlayback').disabled = false;
     narratorUi.querySelector('#stopPlayback').disabled = false;
 
-    logStatus(`API: ${apiUrl}`);
-    logStatus(`Voice: ${voice}`);
-    logStatus(`starting playback from span ${startIndex + 1}...`);
+    logStatus(`Starting playback from span ${startIndex + 1} (API: ${apiUrl}, Voice: ${voice})`);
 
     playSpansSequentially(remainingSpans, startIndex);
   };
@@ -523,6 +553,41 @@ function setupNarratorUI() {
         console.warn('Narrator UI: Could not find Follow button to clone');
       }
 
+      // Find and clone separator elements (look for div with role="separator" or border styling)
+      let separatorTemplate = null;
+      const potentialSeparators = clonedAside.querySelectorAll('[role="separator"]');
+      if (potentialSeparators.length > 0) {
+        separatorTemplate = potentialSeparators[0].cloneNode(true);
+        console.log('Narrator UI: Cloned separator from [role="separator"]');
+      } else {
+        // Fallback: look for divs with border-bottom
+        const allDivs = clonedAside.querySelectorAll('div');
+        for (const div of allDivs) {
+          const style = window.getComputedStyle(div);
+          if (style.borderBottom && style.borderBottom !== 'none') {
+            separatorTemplate = div.cloneNode(true);
+            console.log('Narrator UI: Cloned separator from div with border');
+            break;
+          }
+        }
+      }
+
+      // Find and clone the @username styled element structure for log entries
+      // We look for a span that starts with "@", then get its parent div and grandparent div
+      const allSpans = clonedAside.querySelectorAll('span');
+      for (const span of allSpans) {
+        if (span.textContent && span.textContent.trim().startsWith('@')) {
+          const parentDiv = span.parentElement;
+          const grandparentDiv = parentDiv ? parentDiv.parentElement : null;
+          if (grandparentDiv) {
+            // Clone the structure: grandparentDiv > parentDiv > span
+            logEntryTemplate = grandparentDiv.cloneNode(true);
+            console.log('Narrator UI: Cloned log entry template from @username styled element');
+            break;
+          }
+        }
+      }
+
       // Create our custom narrator aside
       const narratorAside = document.createElement('aside');
       narratorAside.id = 'narrator-ui';
@@ -565,25 +630,18 @@ function setupNarratorUI() {
       const narratorUi = document.createElement('div');
       narratorUi.appendChild(template.content.cloneNode(true));
 
+      // Add separators to their containers
+      if (separatorTemplate) {
+        const separator1 = narratorUi.querySelector('#separator1');
+        const debugLogTopSep = narratorUi.querySelector('#debugLogTopSeparator');
+        const debugLogBottomSep = narratorUi.querySelector('#debugLogBottomSeparator');
+        if (separator1) separator1.appendChild(separatorTemplate.cloneNode(true));
+        if (debugLogTopSep) debugLogTopSep.appendChild(separatorTemplate.cloneNode(true));
+        if (debugLogBottomSep) debugLogBottomSep.appendChild(separatorTemplate.cloneNode(true));
+      }
+
       // REPLACE BUTTONS: Clone the Follow button for our controls
       if (followButton) {
-        // Clone for Copy and Open buttons
-        const copyOpenContainer = narratorUi.querySelector('#copyOpenButtons');
-        if (copyOpenContainer) {
-          const copyBtn = followButton.cloneNode(true);
-          copyBtn.id = 'copy';
-          copyBtn.disabled = true;
-          updateButtonText(copyBtn, 'Copy Text');
-
-          const openTabBtn = followButton.cloneNode(true);
-          openTabBtn.id = 'openTab';
-          openTabBtn.disabled = true;
-          updateButtonText(openTabBtn, 'Open in Tab');
-
-          copyOpenContainer.appendChild(copyBtn);
-          copyOpenContainer.appendChild(openTabBtn);
-        }
-
         // Clone for Open settings button
         const openSettingsContainer = narratorUi.querySelector('#openSettingsButton');
         if (openSettingsContainer) {
@@ -591,6 +649,26 @@ function setupNarratorUI() {
           openSettingsBtn.id = 'toggleSettings';
           updateButtonText(openSettingsBtn, 'Open settings');
           openSettingsContainer.appendChild(openSettingsBtn);
+        }
+
+        // Clone for Save settings button
+        const saveSettingsContainer = narratorUi.querySelector('#saveSettingsButton');
+        if (saveSettingsContainer) {
+          const saveSettingsBtn = followButton.cloneNode(true);
+          saveSettingsBtn.id = 'saveSettings';
+          saveSettingsBtn.style.flex = '1';
+          updateButtonText(saveSettingsBtn, 'Save settings');
+          saveSettingsContainer.appendChild(saveSettingsBtn);
+        }
+
+        // Clone for Debug log toggle button
+        const debugLogContainer = narratorUi.querySelector('#debugLogButton');
+        if (debugLogContainer) {
+          const debugLogBtn = followButton.cloneNode(true);
+          debugLogBtn.id = 'toggleDebugLog';
+          debugLogBtn.style.flex = '1';
+          updateButtonText(debugLogBtn, 'Open Debug Log');
+          debugLogContainer.appendChild(debugLogBtn);
         }
 
         // Clone for playback buttons
@@ -603,14 +681,17 @@ function setupNarratorUI() {
 
           playAllBtn.id = 'playAll';
           playAllBtn.disabled = true;
+          playAllBtn.style.flex = '1';
           updateButtonText(playAllBtn, 'Play All');
 
           pauseBtn.id = 'pausePlayback';
           pauseBtn.disabled = true;
+          pauseBtn.style.flex = '1';
           updateButtonText(pauseBtn, 'Pause');
 
           stopBtn.id = 'stopPlayback';
           stopBtn.disabled = true;
+          stopBtn.style.flex = '1';
           updateButtonText(stopBtn, 'Stop');
 
           buttonContainer.appendChild(playAllBtn);
