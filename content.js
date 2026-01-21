@@ -88,6 +88,27 @@ async function playSingleSpan(text, spanIndex) {
 
   currentSpanIndex = spanIndex;
 
+  // Auto-scroll to and highlight the current span
+  if (spanIndex >= 0 && spanIndex < groups.length) {
+    const group = groups[spanIndex];
+    if (group.spans.length > 0) {
+      const firstSpan = group.spans[0];
+      firstSpan.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+      // Add 1-second highlight effect
+      group.spans.forEach(span => {
+        span.style.transition = 'background-color 0.3s ease';
+        span.style.backgroundColor = '#fef08a'; // yellow highlight
+      });
+
+      setTimeout(() => {
+        group.spans.forEach(span => {
+          span.style.backgroundColor = '';
+        });
+      }, 1000);
+    }
+  }
+
   if (outEl) {
     outEl.textContent = `connecting to TTS...`;
   }
@@ -332,20 +353,6 @@ function setupNarratorEventListeners() {
     narratorUi.querySelector('#pausePlayback').disabled = true;
     narratorUi.querySelector('#stopPlayback').disabled = true;
     currentSpanIndex = 0;
-  };
-
-  // Jump to span (scrolls to it in the page)
-  narratorUi.querySelector('#jumpToSpan').onclick = () => {
-    const groups = groupSpansByParent();
-    const index = currentSpanIndex;
-
-    if (index < 0 || index >= groups.length) return;
-
-    const group = groups[index];
-    if (group.spans.length > 0) {
-      group.spans[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-    narratorUi.querySelector('#out').textContent = `jumped to span ${currentSpanIndex + 1}`;
   };
 
   // Copy to clipboard
