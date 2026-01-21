@@ -1,12 +1,12 @@
 <!-- Reusable UI template injected by content.js -->
 <template id="narrator-ui-template">
-  <div>
-    <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+  <div style="padding: 12px;">
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
       <input id="apiUrl" type="text" placeholder="API URL" value="http://localhost:8000" style="flex: 1;">
       <button id="saveSettings">Save</button>
     </div>
 
-    <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
       <select id="voice" style="flex: 1;">
         <option value="alba">alba</option>
         <option value="marius">marius</option>
@@ -19,16 +19,16 @@
       </select>
     </div>
 
-    <button id="run">Extract Text</button>
+    <button id="run" style="width: 100%; margin-bottom: 12px;">Extract Text</button>
 
-    <div style="display: flex; gap: 4px; margin-bottom: 8px;">
+    <div style="display: flex; gap: 8px; margin-bottom: 12px;">
       <button id="copy" disabled style="flex: 1;">Copy Text</button>
       <button id="openTab" disabled style="flex: 1;">Open in Tab</button>
     </div>
 
-    <div id="out" style="margin: 8px 0; height: 150px; overflow-y: auto;">Ready</div>
+    <div id="out" style="margin-bottom: 12px; height: 150px; overflow-y: auto;"></div>
 
-    <div style="display: flex; gap: 4px;">
+    <div style="display: flex; gap: 8px;">
       <button id="playAll" disabled style="flex: 1;">Play All</button>
       <button id="pausePlayback" disabled style="flex: 1;">Pause</button>
       <button id="stopPlayback" disabled style="flex: 1;">Stop</button>

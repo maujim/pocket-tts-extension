@@ -49,14 +49,6 @@ function logStatus(message) {
   outEl.scrollTop = outEl.scrollHeight;
 }
 
-// Initialize log with startup messages
-function initLog() {
-  logStatus('Article Narrator ready');
-  logStatus('API: ' + apiUrl);
-  logStatus('Voice: ' + voice);
-  logStatus('Extract text to begin');
-}
-
 // Sequential playback state
 let currentPlayer = null;
 let isPlaying = false;
@@ -296,6 +288,7 @@ function setupNarratorEventListeners() {
     const charCount = extractedText.length;
     const wordCount = extractedText.split(/\s+/).filter(w => w.length > 0).length;
 
+    logStatus(`Text extracted`);
     logStatus(`spans: ${totalSpanCount} | words: ${wordCount} | chars: ${charCount}`);
 
     narratorUi.querySelector('#copy').disabled = !extractedText;
@@ -355,6 +348,9 @@ function setupNarratorEventListeners() {
     narratorUi.querySelector('#playAll').disabled = true;
     narratorUi.querySelector('#pausePlayback').disabled = false;
     narratorUi.querySelector('#stopPlayback').disabled = false;
+
+    logStatus(`API: ${apiUrl}`);
+    logStatus(`Voice: ${voice}`);
     logStatus(`starting playback from span ${startIndex + 1}...`);
 
     playSpansSequentially(remainingSpans, startIndex);
@@ -542,7 +538,6 @@ function setupNarratorUI() {
       console.log('Narrator UI: Injected');
 
       setupNarratorEventListeners();
-      initLog();
     })
     .catch(err => {
       console.error('Failed to load narrator UI template:', err);
