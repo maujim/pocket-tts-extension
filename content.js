@@ -546,6 +546,7 @@ function setupNarratorUI() {
     return;
   }
 
+  // we use the <aside> tag to find the 'Relevant People' UI element and then clone it
   const sidebar = document.querySelector('aside[aria-label="Relevant people"]') ||
                   document.querySelector('aside');
 
